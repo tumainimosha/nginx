@@ -1,0 +1,21 @@
+# {{ ansible_managed }}
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server ipv6only=on;
+
+	server_name {{ ansible_hostname }};
+	
+	root {{ nginx_default_var_www_document_root }};
+	index index.html index.htm;
+
+	location / {
+		# First attempt to serve request as file, then as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+	}
+
+	error_page 500 502 503 504 /50x.html;  # redirect server error pages to the static page /50x.html
+	location = /50x.html {
+		root /usr/share/nginx/html;
+	}
+}

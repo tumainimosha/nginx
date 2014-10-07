@@ -1,0 +1,21 @@
+---
+# Installs and configures Nginx web server
+
+- name: install nginx
+  apt: update_cache=yes cache_valid_time=3600 pkg={{ item }} state=present # won't update if done under an hour ago
+  with_items:
+    - nginx
+
+- name: configure default nginx server
+  template: src=etc/nginx/sites-available/default.j2 dest=/etc/nginx/sites-available/default # no validation currently
+  notify:
+    - Restart Nginx
+
+- name: create document root if using default location
+  file: path="{{ nginx_default_var_www_document_root }}" state=directory owner=www-data group=www-data
+  when: nginx_default_var_www_document_root == "/var/www/"
+
+- include: app-user.yml
+
+- include: configure-ssl.yml
+  when: nginx_default_var_www_ssl_enabled == true
