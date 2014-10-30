@@ -1,6 +1,9 @@
 ---
 # Default variables - inventory or playbook overrides will be respected
 
+# User settings
+nginx_app_user_username: app
+
 # Server settings
 nginx_default_var_www_document_root: /var/www/
 
