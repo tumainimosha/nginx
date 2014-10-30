@@ -61,6 +61,10 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
 
 ## Changelog
 
+### 0.2.2 - October 2014
+
+* Updating dependencies
+
 ### 0.2.1 - October 2014
 
 * Adjusting role for inclusion in BARC
