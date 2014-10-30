@@ -39,6 +39,10 @@ If using SSL the certificate and private key used must be accessible on the serv
 
 Variables used in default virtual host `/etc/nginx/sites-available/default`:
 
+* `nginx_app_user_username`
+    * The username of the app user, used for day to day tasks, if enabled
+    * This variable **must** be a valid unix username
+    * Default: "app"
 * `nginx_default_var_www_document_root`
 	* Location on server containing site files. 
 	* If a non-default root is used ensure the `www-data` group has access.
@@ -64,6 +68,7 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
 ### 0.2.2 - October 2014
 
 * Updating dependencies
+* App user is now configurable using a variable
 
 ### 0.2.1 - October 2014
 
