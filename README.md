@@ -55,6 +55,9 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
     * File name (including extension) of SSL private key in `nginx_default_var_www_ssl_key_path`
     * Default: "cert.key"
 
+## Contributing
+
+This project welcomes contributions, see `CONTRIBUTING` for our general policy.
 
 ## Developing
 
@@ -72,4 +75,6 @@ After releases the *master* branch should be merged with *develop* to restart th
 
 Issues, bugs, improvements, questions, suggestions and other tasks related to this package are managed through the BAS Web & Applications Team Jira project ([BASWEB](https://jira.ceh.ac.uk/browse/BASWEB)).
 
+## License
 
+Copyright 2014 NERC BAS. Licensed under the MIT license, see `LICENSE` for details.
