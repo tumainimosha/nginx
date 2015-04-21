@@ -5,6 +5,10 @@
 nginx_app_user_username: app
 
 # Server settings
+nginx_default_var_www_server_binding: 0.0.0.0
+nginx_default_var_www_server_http_port: 80
+nginx_default_var_www_server_https_port: 443
+
 nginx_default_var_www_document_root: /var/www/
 
 # Server settings: SSL

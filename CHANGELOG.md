@@ -3,6 +3,7 @@
 ## 1.0.0 - April 2014
 
 * Updating default locations of SSL certificate and private key files
+* Adding support for customising the interface the default virtual host will bind to and the ports used for HTTP and HTTPS traffic
 
 ## 0.2.3 - December 2014
 
