@@ -10,6 +10,7 @@ Installs Nginx web-sever using default virtual host
 * Configures default virtual host for HTTP connections, if a non-default document root is used the virtual server will be configured to point to this location.
 * Optionally configures virtual host for HTTPS connections, if a non-default document root is used the virtual host will be configured to point to this location.
 * The app user is made a member of the `www-data` group and ownership of the default document root is set to the 'app' user.
+* Optionally allows non-default ports and IP bindings to be set (i.e. listening for local connections only or setting port 80 to 8080).
 
 ## Availability
 
@@ -35,6 +36,18 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
     * The username of the app user, used for day to day tasks, if enabled
     * This variable **must** be a valid unix username
     * Default: "app"
+* `nginx_default_var_www_server_binding`
+    * The networking interface Nginx will listen for connections on
+    * By default this variable listens on any IPv4 interface.
+    * Default: "0.0.0.0"
+* `nginx_default_var_www_server_http_port`
+    * The port on which Nginx will listen for HTTP connections
+    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
+    * Default: "80"
+* `nginx_default_var_www_server_https_port`
+    * The port on which Nginx will listen for HTTPS connections
+    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
+    * Default: "443"
 * `nginx_default_var_www_document_root`
 	* Location on server containing site files. 
 	* If a non-default root is used ensure the `www-data` group has access.

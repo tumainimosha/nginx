@@ -1,8 +1,8 @@
 # {{ ansible_managed }}
 
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server ipv6only=on;
+	listen {{ nginx_default_var_www_server_binding }}:{{ nginx_default_var_www_server_http_port }} default_server;
+	listen [::]:{{ nginx_default_var_www_server_http_port }} default_server ipv6only=on;
 
 	server_name {{ ansible_hostname }};
 	
