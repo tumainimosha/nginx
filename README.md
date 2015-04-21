@@ -6,10 +6,12 @@ Installs Nginx web-sever using default virtual host
 
 ## Overview
 
-* Installs Nginx server.
+* Installs Nginx server from the Nginx stable PPA to ensure the latest stable version is used.
 * Configures default virtual host for HTTP connections, if a non-default document root is used the virtual server will be configured to point to this location.
 * Optionally configures virtual host for HTTPS connections, if a non-default document root is used the virtual host will be configured to point to this location.
 * The app user is made a member of the `www-data` group and ownership of the default document root is set to the 'app' user.
+* Optionally allows non-default ports and IP bindings to be set (i.e. listening for local connections only or setting port 80 to 8080).
+* Includes SSL hardening rules to give an "A+" rating against the SSL Labs tests.
 
 ## Availability
 
@@ -27,6 +29,10 @@ This role is designed for internal use but if useful can be shared publicly.
 
 If using SSL the certificate and private key used must be accessible on the server, then use the `nginx_default_var_www_ssl_cert` and `nginx_default_var_www_ssl_key` variables to point to this location. It is out of scope to do this in this role (as the certificate may be used in multiple web-servers).
 
+### Notes
+
+The DH parameter files used by this role are taken from 18F's SSL configuration [here](https://github.com/fisma-ready/nginx/tree/master/ssl).
+
 ### Variables
 
 Variables used in default virtual host `/etc/nginx/sites-available/default`:
@@ -35,6 +41,18 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
     * The username of the app user, used for day to day tasks, if enabled
     * This variable **must** be a valid unix username
     * Default: "app"
+* `nginx_default_var_www_server_binding`
+    * The networking interface Nginx will listen for connections on
+    * By default this variable listens on any IPv4 interface.
+    * Default: "0.0.0.0"
+* `nginx_default_var_www_server_http_port`
+    * The port on which Nginx will listen for HTTP connections
+    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
+    * Default: "80"
+* `nginx_default_var_www_server_https_port`
+    * The port on which Nginx will listen for HTTPS connections
+    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
+    * Default: "443"
 * `nginx_default_var_www_document_root`
 	* Location on server containing site files. 
 	* If a non-default root is used ensure the `www-data` group has access.
@@ -44,13 +62,14 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
     * Default: "false"
 * `nginx_default_var_www_ssl_cert_path`
     * Path, without a trailing slash, to the directory holding the SSL certificate 
-    * Default: "/vagrant/data/certificates"
-* `nginx_default_var_www_ssl_key_path`
-    * Path, without a trailing slash, to the directory holding the SSL private key 
-    * Default: "{{ nginx_default_var_www_ssl_cert_path }}" (i.e. same directory as `nginx_default_var_www_ssl_cert_path`)
+    * Default: "/app/provisioning/certificates/domain"
 * `nginx_default_var_www_ssl_cert_file`
     * File name (including extension) of SSL certificate in `nginx_default_var_www_ssl_cert_path`
-    * Default: "cert.cer"
+    * The certificate file this variable points to **SHOULD** contain a complete SSL trust chain.
+    * Default: "certificate-including-trust-chain.crt"
+* `nginx_default_var_www_ssl_key_path`
+    * Path, without a trailing slash, to the directory holding the SSL private key 
+    * Default: "/etc/ssl/private"
 * `nginx_default_var_www_ssl_key_file`
     * File name (including extension) of SSL private key in `nginx_default_var_www_ssl_key_path`
     * Default: "cert.key"
@@ -63,7 +82,7 @@ This project welcomes contributions, see `CONTRIBUTING` for our general policy.
 
 ### Committing changes
 
-The [Git flow](https://github.com/fzaninotto/Faker#formatters) workflow is used to manage development of this package.
+The [Git flow](atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) workflow is used to manage development of this package.
 
 Discrete changes should be made within *feature* branches, created from and merged back into *develop* (where small one-line changes may be made directly).
 
@@ -77,4 +96,4 @@ Issues, bugs, improvements, questions, suggestions and other tasks related to th
 
 ## License
 
-Copyright 2014 NERC BAS. Licensed under the MIT license, see `LICENSE` for details.
+Copyright 2015 NERC BAS. Licensed under the MIT license, see `LICENSE` for details.

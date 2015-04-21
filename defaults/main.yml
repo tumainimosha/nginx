@@ -5,11 +5,17 @@
 nginx_app_user_username: app
 
 # Server settings
+nginx_default_var_www_server_binding: 0.0.0.0
+nginx_default_var_www_server_http_port: 80
+nginx_default_var_www_server_https_port: 443
+
 nginx_default_var_www_document_root: /var/www/
 
 # Server settings: SSL
 nginx_default_var_www_ssl_enabled: false
-nginx_default_var_www_ssl_cert_path: "/vagrant/data/certificates"
-nginx_default_var_www_ssl_key_path: "{{ nginx_default_var_www_ssl_cert_path }}"
-nginx_default_var_www_ssl_cert_file: "cert.cer"
-nginx_default_var_www_ssl_key_file: "cert.key"
+
+nginx_default_var_www_ssl_cert_path: /app/provisioning/certificates/domain
+nginx_default_var_www_ssl_cert_file: certificate-including-trust-chain.crt
+
+nginx_default_var_www_ssl_key_path: /etc/ssl/private
+nginx_default_var_www_ssl_key_file: "certificate.key"

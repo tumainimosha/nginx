@@ -1,6 +1,9 @@
 ---
 # Installs and configures Nginx web server
 
+- name: install nginx PPA
+  apt_repository: repo='ppa:nginx/stable' state=present update_cache=yes
+
 - name: install nginx
   apt: update_cache=yes cache_valid_time=3600 pkg={{ item }} state=present # won't update if done under an hour ago
   with_items:
