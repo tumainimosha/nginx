@@ -4,6 +4,7 @@
 
 * Updating default locations of SSL certificate and private key files
 * Adding support for customising the interface the default virtual host will bind to and the ports used for HTTP and HTTPS traffic
+* Adding support for Nginx PPA to ensure the latest stable version is installed
 
 ## 0.2.3 - December 2014
 
