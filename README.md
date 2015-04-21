@@ -44,13 +44,14 @@ Variables used in default virtual host `/etc/nginx/sites-available/default`:
     * Default: "false"
 * `nginx_default_var_www_ssl_cert_path`
     * Path, without a trailing slash, to the directory holding the SSL certificate 
-    * Default: "/vagrant/data/certificates"
-* `nginx_default_var_www_ssl_key_path`
-    * Path, without a trailing slash, to the directory holding the SSL private key 
-    * Default: "{{ nginx_default_var_www_ssl_cert_path }}" (i.e. same directory as `nginx_default_var_www_ssl_cert_path`)
+    * Default: "/app/provisioning/certificates/domain"
 * `nginx_default_var_www_ssl_cert_file`
     * File name (including extension) of SSL certificate in `nginx_default_var_www_ssl_cert_path`
-    * Default: "cert.cer"
+    * The certificate file this variable points to **SHOULD** contain a complete SSL trust chain.
+    * Default: "certificate-including-trust-chain.crt"
+* `nginx_default_var_www_ssl_key_path`
+    * Path, without a trailing slash, to the directory holding the SSL private key 
+    * Default: "/etc/ssl/private"
 * `nginx_default_var_www_ssl_key_file`
     * File name (including extension) of SSL private key in `nginx_default_var_www_ssl_key_path`
     * Default: "cert.key"

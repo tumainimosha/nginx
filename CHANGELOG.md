@@ -1,5 +1,9 @@
 # Nginx (`nginx`) - Changelog
 
+## 1.0.0 - April 2014
+
+* Updating default locations of SSL certificate and private key files
+
 ## 0.2.3 - December 2014
 
 * Preparing role for public release
