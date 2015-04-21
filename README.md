@@ -6,7 +6,7 @@ Installs Nginx web-sever using default virtual host
 
 ## Overview
 
-* Installs Nginx server.
+* Installs Nginx server from the Nginx stable PPA to ensure the latest stable version is used.
 * Configures default virtual host for HTTP connections, if a non-default document root is used the virtual server will be configured to point to this location.
 * Optionally configures virtual host for HTTPS connections, if a non-default document root is used the virtual host will be configured to point to this location.
 * The app user is made a member of the `www-data` group and ownership of the default document root is set to the 'app' user.
