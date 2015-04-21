@@ -8,3 +8,12 @@
   file: src=/etc/nginx/sites-available/default-ssl.conf dest=/etc/nginx/sites-enabled/default-ssl.conf state=link
   notify:
     - Restart Nginx
+
+- name: create directory for nginx SSL configuration
+  file: path=/etc/nginx/ssl state=directory
+
+- name: copy SSL rules to nginx configuration directory
+  copy: src=etc/nginx/ssl/ssl.rules dest=/etc/nginx/ssl
+
+- name: copy SSL DH parameter key to nginx configuration directory
+  copy: src=etc/nginx/ssl/dhparam2048.pem dest=/etc/nginx/ssl
