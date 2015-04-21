@@ -12,6 +12,9 @@ server {
 	ssl_certificate {{ nginx_default_var_www_ssl_cert_path }}/{{ nginx_default_var_www_ssl_cert_file }};
 	ssl_certificate_key {{ nginx_default_var_www_ssl_key_path }}/{{ nginx_default_var_www_ssl_key_file }};
 
+	# Apply SSL hardening rules
+	include ssl/ssl.rules;
+
 	location / {
 		# First attempt to serve request as file, then as directory, then fall back to displaying a 404.
 		try_files $uri $uri/ =404;

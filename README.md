@@ -11,6 +11,7 @@ Installs Nginx web-sever using default virtual host
 * Optionally configures virtual host for HTTPS connections, if a non-default document root is used the virtual host will be configured to point to this location.
 * The app user is made a member of the `www-data` group and ownership of the default document root is set to the 'app' user.
 * Optionally allows non-default ports and IP bindings to be set (i.e. listening for local connections only or setting port 80 to 8080).
+* Includes SSL hardening rules to give an "A+" rating against the SSL Labs tests.
 
 ## Availability
 
@@ -27,6 +28,10 @@ This role is designed for internal use but if useful can be shared publicly.
 #### Other
 
 If using SSL the certificate and private key used must be accessible on the server, then use the `nginx_default_var_www_ssl_cert` and `nginx_default_var_www_ssl_key` variables to point to this location. It is out of scope to do this in this role (as the certificate may be used in multiple web-servers).
+
+### Notes
+
+The DH parameter files used by this role are taken from 18F's SSL configuration [here](https://github.com/fisma-ready/nginx/tree/master/ssl).
 
 ### Variables
 
