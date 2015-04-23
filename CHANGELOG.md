@@ -1,5 +1,10 @@
 # Nginx (`nginx`) - Changelog
 
+## 1.0.1 - April 2014
+
+* Refactoring tasks
+* Fixing tasks to prevent unnecessary change reporting
+
 ## 1.0.0 - April 2014
 
 * Updating default locations of SSL certificate and private key files
