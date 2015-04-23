@@ -1,0 +1,9 @@
+---
+
+- name: check if document root exists if using default location
+  stat: path="{{ nginx_default_var_www_document_root }}"
+  register: nginx_fact_default_document_root
+
+- name: create document root if using default location
+  file: path="{{ nginx_default_var_www_document_root }}" state=directory owner=www-data group=www-data
+  when: nginx_default_var_www_document_root == "/var/www/" and nginx_fact_default_document_root.stat.exists is defined and nginx_fact_default_document_root.stat.exists == false
