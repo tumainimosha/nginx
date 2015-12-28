@@ -31,7 +31,31 @@
     - include: tasks/http-to-https.yml
     - include: ../tasks/main.yml
     - include: ../tasks/http-to-https.yml
+    - name: make request to http server block which redirects to https without following redirect
+      uri:
+                     url="http://localhost/index.html"
+        follow_redirects=none
+             status_code=301
+      changed_when: false
+      register: nginx_test_fact_http_to_https_request_details_without_redirect
+    - name: assert request to which redirects to https server block without following redirects generates a redirect
+      assert:
+        that:
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.status == 301"
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.location is defined"
+          - "'https://' in nginx_test_fact_http_to_https_request_details_without_redirect.location"
+    - name: make request to http server block which redirects to https again following redirects
+      uri:
+                   url="http://localhost/index.html"
+        return_content=yes
+        validate_certs=no
+      changed_when: false
+      register: nginx_test_fact_http_to_https_request_details_with_redirect
+    - name: assert request to which redirects to https server block following redirects generates was successful
+      assert:
+        that:
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.status == 200"
+          - "'Hello Rencia' in nginx_test_fact_http_to_https_request_details_with_redirect.content"
   handlers:
     - include: ~/nginx/handlers/main.yml
 
-# TODO - functional checks?
