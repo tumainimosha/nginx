@@ -32,9 +32,14 @@
   roles:
     - ~/nginx
   tasks:
+    # Re-use subset of 'Management and configuration' tests used in local testing
     - include: tasks/http-to-https.yml
     - include: ../tasks/main.yml
     - include: ../tasks/http-to-https.yml
+    # It is necessary to restart Nginx/UFW before running functional tests
+    # In CI these are run in the same playbook, therefore we need to force them to run now
+    - meta: flush_handlers
+    # Re-use subset of 'Functional' tests used in local testing
     - name: make request to http server block which redirects to https without following redirect
       uri:
                      url="http://localhost/index.html"
