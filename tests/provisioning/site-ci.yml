@@ -25,6 +25,10 @@
         - ufw
     - name: ensure firewall is running
       ufw: state=enabled
+    - name: stop existing apache instance getting in the way
+      service:
+         name=apache2
+        state=stopped
   roles:
     - ~/nginx
   tasks:
@@ -43,6 +47,7 @@
         that:
           - "nginx_test_fact_http_to_https_request_details_without_redirect.status == 301"
           - "nginx_test_fact_http_to_https_request_details_without_redirect.location is defined"
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.server == 'nginx'"
           - "'https://' in nginx_test_fact_http_to_https_request_details_without_redirect.location"
     - name: make request to http server block which redirects to https again following redirects
       uri:
@@ -55,6 +60,7 @@
       assert:
         that:
           - "nginx_test_fact_http_to_https_request_details_with_redirect.status == 200"
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.server == 'nginx'"
           - "'Hello Rencia' in nginx_test_fact_http_to_https_request_details_with_redirect.content"
   handlers:
     - include: ~/nginx/handlers/main.yml
