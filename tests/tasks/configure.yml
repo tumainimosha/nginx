@@ -1,0 +1,98 @@
+---
+# Checks core Nginx configuration files are set correctly and relevant directories exist
+
+- name: get status of sites-available and sites-enabled directories
+  stat: path="/etc/nginx/{{ item }}"
+  with_items:
+    - sites-available
+    - sites-enabled
+  changed_when: false
+  register: nginx_test_fact_sites_available_enabled_directories_exist
+- name: assert sites-available and sites-enabled directories exist
+  assert:
+    that:
+      - "item.stat.exists is defined"
+      - "item.stat.exists == true"
+  with_items: nginx_test_fact_sites_available_enabled_directories_exist.results
+
+- name: get status of certificate and certificate private key directories
+  stat: path="{{ item }}"
+  with_items:
+    - "{{ os_tls_certificates_path }}"
+    - "{{ os_tls_keys_path }}"
+  changed_when: false
+  register: nginx_test_fact_tls_certs_private_directories_exist
+- name: assert certificate and certificate private key directories exist
+  assert:
+    that:
+      - "item.stat.exists is defined"
+      - "item.stat.exists == true"
+  with_items: nginx_test_fact_tls_certs_private_directories_exist.results
+
+- name: get contents of main nginx configuration file
+  command: cat /etc/nginx/nginx.conf
+  changed_when: false
+  register: nginx_test_fact_main_nginx_configuration_file_contents
+- name: assert main nginx configuration file was generated correctly
+  assert:
+    that:
+      - "'# Main configuration file' in nginx_test_fact_main_nginx_configuration_file_contents.stdout"
+
+- name: get contents of module configuration files
+  command: "cat /etc/nginx/conf.d/{{ item }}.conf"
+  with_items:
+    - http
+  changed_when: false
+  register: nginx_test_fact_module_nginx_configuration_files_contents
+- name: assert module configuration files were generated correctly
+  assert:
+    that:
+      - "'# Module configuration file' in item.stdout"
+  with_items: nginx_test_fact_module_nginx_configuration_files_contents.results
+
+- name: get contents of additional configuration files
+  command: "cat /etc/nginx/conf.d/{{ item }}.conf"
+  with_items:
+    - http/gzip
+    - http/tls
+    - http/logging
+    - http/mime
+  changed_when: false
+  register: nginx_test_fact_additional_nginx_configuration_files_contents
+- name: assert additional configuration files were generated correctly
+  assert:
+    that:
+      - "'# Additional configuration file' in item.stdout"
+  with_items: nginx_test_fact_additional_nginx_configuration_files_contents.results
+
+- name: get contents of default server block definition files - CentOS
+  stat: path="/etc/nginx/conf.d/{{ item }}"
+  with_items:
+    - default.conf
+    - example-ssl.conf
+  changed_when: false
+  register: nginx_test_fact_default_server_block_definition_files_centos
+  when: ansible_distribution == "CentOS"
+- name: assert default server block definition files do not exist - CentOS
+  assert:
+    that:
+      - "item.stat.exists is defined"
+      - "item.stat.exists == false"
+  with_items: nginx_test_fact_default_server_block_definition_files_centos.results
+  when: ansible_distribution == "CentOS"
+
+- name: get contents of default server block definition files - Ubuntu
+  stat: path="/etc/nginx/{{ item }}/default"
+  with_items:
+    - sites-enabled
+    - sites-available
+  changed_when: false
+  register: nginx_test_fact_default_server_block_definition_files_ubuntu
+  when: ansible_distribution == "Ubuntu"
+- name: assert default server block definition files do not exist - Ubuntu
+  assert:
+    that:
+      - "item.stat.exists is defined"
+      - "item.stat.exists == false"
+  with_items: nginx_test_fact_default_server_block_definition_files_ubuntu.results
+  when: ansible_distribution == "Ubuntu"

@@ -1,0 +1,68 @@
+---
+# Configures the Nginx web-server for use
+
+- name: ensure sites-available and sites-enabled directories exist
+  file:
+    path="/etc/nginx/{{ item }}"
+    state=directory
+  with_items:
+    - sites-available
+    - sites-enabled
+
+- name: ensure certificate and certificate private key directories exist
+  file:
+    path="{{ item }}"
+    state=directory
+  with_items:
+    - "{{ tls_certificates_path }}"
+    - "{{ tls_keys_path }}"
+
+- name: generate main nginx configuration file
+  template:
+    src=etc/nginx/nginx.conf.j2
+    dest=/etc/nginx/nginx.conf
+  notify: Restart Nginx
+
+- name: generate module configuration files
+  template:
+    src="etc/nginx/conf.d/{{ item }}.conf.j2"
+    dest="/etc/nginx/conf.d/{{ item }}.conf"
+  with_items:
+    - http
+  notify: Restart Nginx
+
+- name: generate per module directories for additional configuration files
+  file:
+     path="/etc/nginx/conf.d/{{ item }}"
+    state=directory
+  with_items:
+    - http
+
+- name: generate additional configuration files
+  template:
+    src="etc/nginx/conf.d/{{ item }}.conf.j2"
+    dest="/etc/nginx/conf.d/{{ item }}.conf"
+  with_items:
+    - http/logging
+    - http/mime
+    - http/gzip
+    - http/tls
+  notify: Restart Nginx
+
+- name: ensure default server block definition files are absent to prevent conflicts - CentOS
+  file:
+    path="/etc/nginx/conf.d/{{ item }}"
+    state=absent
+  with_items:
+    - default.conf
+    - example-ssl.conf
+  when: ansible_distribution == "CentOS"
+
+- name: ensure default server block definition file is absent to prevent conflicts - Ubuntu
+  file:
+    path="/etc/nginx/{{ item }}/default"
+    state=absent
+  with_items:
+    - sites-enabled
+    - sites-available
+  when: ansible_distribution == "Ubuntu"

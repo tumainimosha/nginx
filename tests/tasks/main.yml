@@ -1,0 +1,30 @@
+---
+# Tests the Nginx web-server is correctly installed and configured by this role
+
+# Management and configuration checks
+# These checks mirror individual tasks to ensure they execute correctly
+# (I.e. that they create a user in the right package or create the correct config file)
+
+# Core configuration
+
+- include: install.yml
+
+- include: configure.yml
+
+- include: configure-firewall.yml
+
+# Server block tests
+# As these tests only apply to certain scenarios (i.e. those with server blocks), tests for server blocks are loaded
+# when needed from the 'site-test.yml' and 'site-ci.yml' playbooks.
+#
+# For reference server block test tasks are located in:
+# * http.yml          - for testing http server blocks
+# * https.yml         - for testing https server blocks
+# * http-to-https.yml - fr testing http blocks which redirect to https blocks
+
+# Functionality checks
+# These checks need to run after the package or service has been configured to ensure it is working correctly,
+# using an configuration that may have been set by this role.
+
+# In this role functionality checks are verified by an external VM (to check if connections are correctly blocked).
+# To do this a special testing VM will run the 'functional-tests.yml' task file located alongside this file.

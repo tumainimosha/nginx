@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+# Additional configuration file - Gzip defaults
+#
+# This is a harmonised configuration file created by merging, and then modifying, the Ubuntu and CentOS default
+# configuration files.
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+
+gzip {{ nginx_config_gzip_enable_gzip }};
+gzip_disable "msie6";

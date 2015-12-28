@@ -1,0 +1,78 @@
+---
+# Test if server blocks actually work by simulating a request from a browser
+
+- name: make request to http server block
+  uri:
+               url="http://{{ item }}/index.html"
+    return_content=yes
+  with_items:
+    - barc-nginx-test-centos-http.v.m
+    - barc-nginx-test-ubuntu-http.v.m
+  changed_when: false
+  register: nginx_test_fact_http_request_details
+  when: test_http_server_block == true
+- name: assert request to http server block was successful
+  assert:
+    that:
+      - "item.status == 200"
+      - "'Hello Rencia' in item.content"
+  with_items: nginx_test_fact_http_request_details.results
+  when: test_http_server_block == true
+
+- name: make request to https server block
+  uri:
+               url="https://{{ item }}/index.html"
+    return_content=yes
+    validate_certs=no
+  with_items:
+    - barc-nginx-test-centos-https.v.m
+    - barc-nginx-test-ubuntu-https.v.m
+  changed_when: false
+  register: nginx_test_fact_https_request_details
+  when: test_https_server_block == true
+- name: assert request to https server block was successful
+  assert:
+    that:
+      - "item.status == 200"
+      - "'Hello Rencia' in item.content"
+  with_items: nginx_test_fact_https_request_details.results
+  when: test_https_server_block == true
+
+- name: make request to http server block which redirects to https without following redirect
+  uri:
+                 url="http://{{ item }}/index.html"
+    follow_redirects=none
+         status_code=301
+  with_items:
+    - barc-nginx-test-centos-http-to-https.v.m
+    - barc-nginx-test-ubuntu-http-to-https.v.m
+  changed_when: false
+  register: nginx_test_fact_http_to_https_request_details_without_redirect
+  when: test_http_to_https_server_block == true
+- name: assert request to which redirects to https server block without following redirects generates a redirect
+  assert:
+    that:
+      - "item.status == 301"
+      - "item.location is defined"
+      - "'https://' in item.location"
+  with_items: nginx_test_fact_http_to_https_request_details_without_redirect.results
+  when: test_http_to_https_server_block == true
+
+- name: make request to http server block which redirects to https again following redirects
+  uri:
+               url="http://{{ item }}/index.html"
+    return_content=yes
+    validate_certs=no
+  with_items:
+    - barc-nginx-test-centos-http-to-https.v.m
+    - barc-nginx-test-ubuntu-http-to-https.v.m
+  changed_when: false
+  register: nginx_test_fact_http_to_https_request_details_with_redirect
+  when: test_http_to_https_server_block == true
+- name: assert request to which redirects to https server block following redirects generates was successful
+  assert:
+    that:
+      - "item.status == 200"
+      - "'Hello Rencia' in item.content"
+  with_items: nginx_test_fact_http_to_https_request_details_with_redirect.results
+  when: test_http_to_https_server_block == true

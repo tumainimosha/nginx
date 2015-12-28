@@ -1,0 +1,53 @@
+---
+# Installs the Nginx web-server
+
+# not sure if this is the correct convention for these tasks
+
+# This task is added in readiness for Ansible 2 - it is not currently used.
+# - name: add nginx repository - CentOS
+#   yumrepo:
+#     name=nginx
+#     description=Nginx repo
+#     baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
+#     state=present
+#   when: ansible_distribution == "CentOS"
+
+- name: add nginx repository - CentOS
+  copy:
+     src=etc/yum.repos.d/nginx.repo
+    dest=/etc/yum.repos.d/nginx.repo
+  when: ansible_distribution == "CentOS"
+
+- name: add nginx repository - Ubuntu
+  apt_repository:
+     repo='ppa:nginx/stable'
+    state=present
+  when: ansible_distribution == "Ubuntu"
+
+- name: install nginx - CentOS
+  yum:
+             pkg={{ item }}
+      enablerepo=nginx
+    update_cache=yes
+           state=present
+  with_items:
+  - nginx
+  when: ansible_distribution == "CentOS"
+
+# Adding the custom repository causes a package cache refresh so the valid cache option can be used safely
+- name: install nginx - Ubuntu
+  apt:
+                 pkg={{ item }}
+    cache_valid_time=3600
+        update_cache=yes
+               state=present
+  with_items:
+  - nginx
+  when: ansible_distribution == "Ubuntu"
+
+- name: ensure nginx is enabled to start at boot - CentOS
+  service:
+       name=nginx
+    enabled=yes
+      state=started
+  when: ansible_distribution == "CentOS"

@@ -1,0 +1,16 @@
+; {{ ansible_managed }}
+
+[nginx-http]
+title=Web Server (Nginx, HTTP)
+description=Small, but very powerful and efficient web server
+ports={{ nginx_firewall_port_http }}/tcp
+
+[nginx-https]
+title=Web Server (Nginx, HTTPS)
+description=Small, but very powerful and efficient web server
+ports={{ nginx_firewall_port_https }}/tcp
+
+[nginx-http-https]
+title=Web Server (Nginx, HTTP + HTTPS)
+description=Small, but very powerful and efficient web server
+ports={{ nginx_firewall_port_http }},{{ nginx_firewall_port_https }}/tcp

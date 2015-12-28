@@ -1,21 +1,41 @@
 ---
 # Default variables - inventory or playbook overrides will be respected
 
-# User settings
-nginx_app_user_username: app
+# Generic variables - for overriding all roles of a particular type (e.g. operating system, web-servers, etc.)
+webserver_listening_port_http: 80
+webserver_listening_port_https: 443
 
-# Server settings
-nginx_default_var_www_server_binding: 0.0.0.0
-nginx_default_var_www_server_http_port: 80
-nginx_default_var_www_server_https_port: 443
+webserver_firewall_rule: http-https
 
-nginx_default_var_www_document_root: /var/www/
+webserver_virtual_hosts_listening_port_http: "{{ webserver_listening_port_http | default('80') }}"
+webserver_virtual_hosts_listening_port_https: "{{ webserver_listening_port_https | default('443') }}"
 
-# Server settings: SSL
-nginx_default_var_www_ssl_enabled: false
+# Uncomment this variable to define it if needed
+# It is undefined by default to allow implementation specific defaults to be used
+# webserver_virtual_hosts_server_name: ""
 
-nginx_default_var_www_ssl_cert_path: /app/provisioning/certificates/domain
-nginx_default_var_www_ssl_cert_file: certificate-including-trust-chain.crt
+webserver_virtual_hosts_document_root: /var/www/html
+webserver_virtual_hosts_document_indexes: index.html
 
-nginx_default_var_www_ssl_key_path: /etc/ssl/private
-nginx_default_var_www_ssl_key_file: "certificate.key"
+webserver_virtual_hosts_tls_certificate_path: "{{ os_tls_certificates_path }}"
+webserver_virtual_hosts_tls_certificate_file: cert.crt
+webserver_virtual_hosts_tls_key_path: "{{ os_tls_keys_path }}"
+webserver_virtual_hosts_tls_key_file: cert.key
+
+# Nginx specific variables
+nginx_firewall_port_http: "{{ webserver_listening_port_http }}"
+nginx_firewall_port_https: "{{ webserver_listening_port_https }}"
+nginx_firewall_rule: "nginx-{{ webserver_firewall_rule }}"
+
+nginx_config_gzip_enable_gzip: "on"
+
+nginx_server_blocks_listening_port_http: "{{ webserver_virtual_hosts_listening_port_http }}"
+nginx_server_blocks_listening_port_https: "{{ webserver_virtual_hosts_listening_port_https }}"
+nginx_server_blocks_server_name: "{{ webserver_virtual_hosts_server_name | default('_') }}"
+nginx_server_blocks_root: "{{ webserver_virtual_hosts_document_root }}"
+nginx_server_blocks_indexes: "{{ webserver_virtual_hosts_document_indexes }}"
+
+nginx_server_blocks_tls_certificate_path: "{{ webserver_virtual_hosts_tls_certificate_path }}"
+nginx_server_blocks_tls_certificate_file: "{{ webserver_virtual_hosts_tls_certificate_file }}"
+nginx_server_blocks_tls_key_path: "{{ webserver_virtual_hosts_tls_key_path }}"
+nginx_server_blocks_tls_key_file: "{{ webserver_virtual_hosts_tls_key_file }}"

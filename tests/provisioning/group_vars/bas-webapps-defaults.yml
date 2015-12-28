@@ -1,0 +1,6 @@
+---
+# These variables override those defined by roles
+# These variables act as configuration defaults for BAS Web & Application projects.
+
+# BAS Systems Inventory
+motd_information_systems_inventory_resource: https://jira.ceh.ac.uk/browse

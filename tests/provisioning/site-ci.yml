@@ -1,0 +1,26 @@
+---
+# Setup infrastructure for testing role
+
+# Apply role to test VMs,
+# host-vars are used to control which features of the role are applied to each VM.
+# For each test a set of tasks will be run to check the selected features of roles are correctly applied.
+
+- name: test creating a http to https server block using the nginx role
+  hosts: local
+  become: yes
+  vars:
+    webserver_virtual_hosts_tls_certificate_file: tls-cert-snakeoil.crt
+    webserver_virtual_hosts_tls_key_file: tls-cert-snakeoil.key
+    rencia:
+      - test-http-redirect
+      - test-https
+  roles:
+    - ~/nginx
+  tasks:
+    - include: tasks/http-to-https.yml
+    - include: ../tasks/main.yml
+    - include: ../tasks/http-to-https.yml
+  handlers:
+    - include: ~/nginx/handlers/main.yml
+
+# TODO - functional checks?

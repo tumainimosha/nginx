@@ -1,0 +1,10 @@
+---
+# Role variables - inventory or playbook overrides will not be respected - use extra-vars to override
+
+# Generic variables - for overriding all roles of a particular type (e.g. operating system, web-servers, etc.)
+os_tls_certificates_path: /etc/pki/tls/certs
+os_tls_keys_path: /etc/pki/tls/private
+
+# Nginx specific variables
+nginx_config_core_pid: /var/run/nginx.pid
+nginx_config_core_user: nginx

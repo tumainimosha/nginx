@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- {{ ansible_managed }} -->
+
+<service>
+  <short>Web Server (Nginx, HTTP + HTTPS)</short>
+  <description>Small, but very powerful and efficient web server</description>
+  <port protocol="tcp" port="{{ nginx_firewall_port_http }}"/>
+  <port protocol="tcp" port="{{ nginx_firewall_port_https }}"/>
+</service>

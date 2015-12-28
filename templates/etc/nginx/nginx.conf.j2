@@ -1,0 +1,34 @@
+# {{ ansible_managed }}
+
+# Main configuration file
+#
+# This is a harmonised configuration file created by merging, and then modifying, the Ubuntu and CentOS default
+# configuration files.
+#
+# Server block (virtual host) definitions *SHOULD NOT* be listed in this file. Instead:
+# 1. Create a server block definition file in '/etc/nginx/sites-available/'
+# 2. Create a symbolic link to this definition file in '/etc/nginx/sites-enabled/'
+# 3. Restart the Nginx service
+#
+# Similarly, configuration for modules such as HTTP *SHOULD NOT* be listed in this file. Instead:
+# 1. Create a suitable configuration file in '/etc/nginx/conf.d/' (or symoblic link a file to this directory)
+# 2. Ensure additional configuration files from namespaced location are included (i.e. '/etc/nginx/conf.d/http/*.conf')
+# 3. Restart the Nginx service
+#
+# Similarly, configuration for additional features of a module, such as Gzip, proxies and SSL/TLS for the HTTP module
+# *SHOULD NOT* be listed in this file. Instead:
+# 1. Create a suitable configuration file in e.g. '/etc/nginx/conf.d/http/' (or symoblic link a file to this directory)
+# 2. Restart the Nginx service
+
+pid {{ nginx_config_core_pid }};
+user {{ nginx_config_core_user }};
+
+worker_processes auto;
+events {
+    worker_connections 1024;
+}
+
+# HTTP module settings are defined in /etc/nginx/conf.d/http.conf
+
+# Load module configuration files
+include /etc/nginx/conf.d/*.conf;

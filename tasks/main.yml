@@ -1,16 +1,20 @@
 ---
 # Installs and configures Nginx web server
 
-- include: install-nginx.yml
+# Load OS specific variables
+- name: load OS specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
 
-- include: configure-ssl.yml
-  when: nginx_default_var_www_ssl_enabled == true
+- include: install.yml
+  tags:
+    - BARC_INSTALL_PACKAGES
 
-- include: configure-document-root.yml
+- include: configure.yml
+  tags:
+    - BARC_CONFIGURE
+    - BARC_CONFIGURE_PACKAGE
 
-- include: app-user.yml
-
-- include: configure-default-http-virtualhost.yml
-
-- include: configure-default-https-virtualhost.yml
-  when: nginx_default_var_www_ssl_enabled == true
+- include: configure-firewall.yml
+  tags:
+    - BARC_CONFIGURE
+    - BARC_CONFIGURE_FIREWALL
