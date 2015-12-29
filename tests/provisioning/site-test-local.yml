@@ -16,10 +16,8 @@
 #   hosts: barc-nginx-test-bare
 #   remote_user: controller
 #   become: yes
-#   vars_files:
-#     - "group_vars/bas-webapps-defaults.yml"
-#     - "group_vars/BAS-webapps-{{ ansible_distribution }}-defaults.yml"
 #   roles:
+#     - BARC.system-core
 #     - ../../../nginx
 #   tasks:
 #     - include: ../tasks/main.yml
@@ -28,12 +26,8 @@
 #   hosts: barc-nginx-test-http
 #   remote_user: controller
 #   become: yes
-#   vars_files:
-#     - "group_vars/bas-webapps-defaults.yml"
-#     - "group_vars/BAS-webapps-{{ ansible_distribution }}-defaults.yml"
-#   vars:
-#     - webserver_firewall_rule: http
 #   roles:
+#     - BARC.system-core
 #     - ../../../nginx
 #   tasks:
 #     - include: tasks/http.yml
@@ -46,13 +40,8 @@
 #   hosts: barc-nginx-test-https
 #   remote_user: controller
 #   become: yes
-#   vars_files:
-#     - "group_vars/bas-webapps-defaults.yml"
-#     - "group_vars/BAS-webapps-{{ ansible_distribution }}-defaults.yml"
-#     - "group_vars/test-certificate.yml"
-#   vars:
-#     - webserver_firewall_rule: https
 #   roles:
+#     - BARC.system-core
 #     - ../../../nginx
 #   tasks:
 #     - include: tasks/https.yml
@@ -65,10 +54,6 @@
 #   hosts: barc-nginx-test-http-to-https
 #   remote_user: controller
 #   become: yes
-#   vars_files:
-#     - "group_vars/bas-webapps-defaults.yml"
-#     - "group_vars/BAS-webapps-{{ ansible_distribution }}-defaults.yml"
-#     - "group_vars/test-certificate.yml"
 #   vars:
 #     rencia:
 #       - test-http-redirect
@@ -89,10 +74,6 @@
   hosts: barc-nginx-test-server-block-test.v.m
   remote_user: controller
   become: yes
-  vars_files:
-    - "group_vars/bas-webapps-defaults.yml"
-    - "group_vars/BAS-webapps-{{ ansible_distribution }}-defaults.yml"
-    - "group_vars/test-certificate.yml"
   vars:
     test_http_server_block: false
     test_https_server_block: false

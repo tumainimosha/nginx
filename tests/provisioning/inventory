@@ -22,6 +22,12 @@ barc-nginx-test-server-block-test.v.m
 [vagrant:children]
 vagrant-test
 
+[digitalocean-test]
+ssl-test.magiclantern.xyz
+
+[digitalocean:children]
+digitalocean-test
+
 
 [ubuntu]
 barc-nginx-test-ubuntu-bare.v.m
@@ -29,6 +35,7 @@ barc-nginx-test-ubuntu-http.v.m
 barc-nginx-test-ubuntu-https.v.m
 barc-nginx-test-ubuntu-http-to-https.v.m
 barc-nginx-test-server-block-test.v.m
+ssl-test.magiclantern.xyz
 
 [centos]
 barc-nginx-test-centos-bare.v.m
@@ -69,3 +76,6 @@ barc-nginx-test-bare
 barc-nginx-test-http
 barc-nginx-test-https
 barc-nginx-test-http-to-https
+
+[barc-nginx-test-remote]
+ssl-test.magiclantern.xyz
