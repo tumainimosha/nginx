@@ -8,3 +8,4 @@
 
 gzip {{ nginx_config_gzip_enable_gzip }};
 gzip_disable "msie6";
+gzip_types {{ nginx_config_gzip_types | join(" ") }};

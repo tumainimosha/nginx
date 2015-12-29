@@ -39,6 +39,7 @@ nginx_firewall_port_https: "{{ webserver_listening_port_https }}"
 nginx_firewall_rule: "nginx-{{ webserver_firewall_rule }}"
 
 nginx_config_gzip_enable_gzip: "on"
+nginx_config_gzip_types: "{{ webserver_config_gzip_types }}"
 
 nginx_server_blocks_listening_port_http: "{{ webserver_virtual_hosts_listening_port_http }}"
 nginx_server_blocks_listening_port_https: "{{ webserver_virtual_hosts_listening_port_https }}"

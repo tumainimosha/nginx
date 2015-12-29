@@ -553,6 +553,24 @@ implications if overriding this value, see the *Limitations* section for further
 * Values **MUST** be a valid system firewall service, as determined by the operating system firewall
 * Default: `http-https`
 
+### *webserver_config_gzip_types*
+
+* **MAY** be specified
+* Specifies a list of MIME types Gzip compression will be applied to
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid MIME types, as determined by the web server
+* Defaults:
+```
+- text/plain
+- text/css
+- text/xml
+- application/xml
+- application/xml+rss
+- application/rss+xml
+- text/javascript
+- application/x-javascript
+```
+
 #### *webserver_virtual_hosts_listening_port_http*
 
 * **MAY** be specified
@@ -711,6 +729,15 @@ implications if overriding this value, see the *Limitations* section for further
   * `off`
 * Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
 * Default: `on`
+
+### *nginx_config_gzip_types*
+
+* **MAY** be specified
+* Specifies a list of MIME types Gzip compression will be applied to
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid MIME types, as determined by Nginx
+* By default, the value of this variable is inherited from the *webserver_config_gzip_types* variable
+* Default: `{{ webserver_config_gzip_types }}`
 
 #### *nginx_server_blocks_listening_port_http*
 
