@@ -16,6 +16,15 @@
   with_items:
     - "{{ tls_certificates_path }}"
     - "{{ tls_keys_path }}"
+- name: ensure directory for custom dh parameters for tls exists
+  file:
+     path=/etc/nginx/tls-dh-parameters
+    state=directory
+
+- name: copy custom dh parameters for tls
+  copy:
+     src=etc/nginx/tls-dh-parameters/dhparam2048.pem
+    dest=/etc/nginx/tls-dh-parameters/dhparam2048.pem
 
 - name: generate main nginx configuration file
   template:
