@@ -25,16 +25,16 @@ Playbooks, host variables and other support files are kept in this `tests` direc
 
 A single scenario is tested using *Continuous Integration*:
 
-* Installs Nginx and generates core and related configuration files including a http server block which redirects to a
-https server block
+* Installs Nginx and generates core and related configuration files including a HTTP server block which redirects to a
+HTTPS server block
 
 Multiple scenarios are tested *manually*:
 
 1. `test-bare` - Installs Nginx, configures the system firewall and generates core and related configuration files only
-2. `test-http` - Everything from `tests-bare` as well as generating a http only server block
-3. `test-https` - Everything from `tests-bare` as well as generating a https only server block
-4. `test-http-to-https` - Everything from `tests-bare` as well as generating a http server block which redirects to a
-https server block
+2. `test-http` - Everything from `tests-bare` as well as generating a HTTP only server block
+3. `test-https` - Everything from `tests-bare` as well as generating a HTTPS only server block
+4. `test-http-to-https` - Everything from `tests-bare` as well as generating a HTTP server block which redirects to a
+HTTPS server block
 
 Note: Multiple scenarios may be run within the same VM, providing they do not overlap.
 
