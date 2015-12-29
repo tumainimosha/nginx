@@ -7,6 +7,16 @@ webserver_listening_port_https: 443
 
 webserver_firewall_rule: http-https
 
+webserver_config_gzip_types:
+  - text/plain
+  - text/css
+  - text/xml
+  - application/xml
+  - application/xml+rss
+  - application/rss+xml
+  - text/javascript
+  - application/x-javascript
+
 webserver_virtual_hosts_listening_port_http: "{{ webserver_listening_port_http | default('80') }}"
 webserver_virtual_hosts_listening_port_https: "{{ webserver_listening_port_https | default('443') }}"
 
@@ -15,7 +25,8 @@ webserver_virtual_hosts_listening_port_https: "{{ webserver_listening_port_https
 # webserver_virtual_hosts_server_name: ""
 
 webserver_virtual_hosts_document_root: /var/www/html
-webserver_virtual_hosts_document_indexes: index.html
+webserver_virtual_hosts_document_indexes:
+  - index.html
 
 webserver_virtual_hosts_tls_certificate_path: "{{ os_tls_certificates_path }}"
 webserver_virtual_hosts_tls_certificate_file: cert.crt

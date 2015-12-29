@@ -1,0 +1,6 @@
+---
+# These variables override those defined by roles
+
+# Generic variables - for overriding all roles of a particular type (e.g. operating system, web-servers, etc.)
+webserver_virtual_hosts_tls_certificate_file: ssl-test.magiclantern.xyz-certificate-including-trust-chain.crt
+webserver_virtual_hosts_tls_key_file: ssl-test.magiclantern.xyz.key

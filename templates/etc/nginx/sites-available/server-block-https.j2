@@ -13,7 +13,7 @@ server {
     server_name {{ nginx_server_blocks_server_name }};
 
     root  {{ nginx_server_blocks_root }};
-    index {{ nginx_server_blocks_indexes }};
+    index {{ nginx_server_blocks_indexes | join(" ") }};
 
     ssl_certificate      {{ nginx_server_blocks_tls_certificate_path }}/{{ nginx_server_blocks_tls_certificate_file }};
     ssl_certificate_key  {{ nginx_server_blocks_tls_key_path }}/{{ nginx_server_blocks_tls_key_file }};

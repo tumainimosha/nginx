@@ -36,6 +36,18 @@ barc-nginx-test-centos-http.v.m
 barc-nginx-test-centos-https.v.m
 barc-nginx-test-centos-http-to-https.v.m
 
+
+[bas-webapps-ubuntu:children]
+ubuntu
+
+[bas-webapps-centos:children]
+centos
+
+[bas-webapps:children]
+bas-webapps-ubuntu
+bas-webapps-centos
+
+
 [barc-nginx-test-bare]
 barc-nginx-test-ubuntu-bare.v.m
 barc-nginx-test-centos-bare.v.m

@@ -1,7 +1,7 @@
 ---
 # Configures the Nginx web-server for use
 
-- name: ensure sites-available and sites-enabled directories exist
+- name: ensure sites-available and sites-enabled directories exists
   file:
     path="/etc/nginx/{{ item }}"
     state=directory
@@ -9,13 +9,14 @@
     - sites-available
     - sites-enabled
 
-- name: ensure certificate and certificate private key directories exist
+- name: ensure certificate and certificate private key directories exists
   file:
     path="{{ item }}"
     state=directory
   with_items:
-    - "{{ tls_certificates_path }}"
-    - "{{ tls_keys_path }}"
+    - "{{ os_tls_certificates_path }}"
+    - "{{ os_tls_keys_path }}"
+
 - name: ensure directory for custom dh parameters for tls exists
   file:
      path=/etc/nginx/tls-dh-parameters

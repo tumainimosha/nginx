@@ -42,7 +42,7 @@
       src: server-block-https
       dest: test-https
 
-- name: enable server block definition files
+- name: enable server blocks
   file:
       src="/etc/nginx/sites-available/{{ item }}"
      dest="/etc/nginx/sites-enabled/{{ item }}"

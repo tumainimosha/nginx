@@ -22,7 +22,7 @@
      src=../../templates/etc/nginx/sites-available/server-block-http.j2
     dest=/etc/nginx/sites-available/test-http
 
-- name: enable http server block definition file
+- name: enable http server block
   file:
       src=/etc/nginx/sites-available/test-http
      dest=/etc/nginx/sites-enabled/test-http

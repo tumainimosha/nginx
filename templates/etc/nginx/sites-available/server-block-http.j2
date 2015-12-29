@@ -13,7 +13,7 @@ server {
     server_name {{ nginx_server_blocks_server_name }};
 
     root  {{ nginx_server_blocks_root }};
-    index {{ nginx_server_blocks_indexes }};
+    index {{ nginx_server_blocks_indexes | join(" ") }};
 
     location / {
         # First attempt to serve request as file, then as a directory, then fall back to displaying a 404.

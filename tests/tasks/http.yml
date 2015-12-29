@@ -48,7 +48,7 @@
       - "'listen {{ nginx_server_blocks_listening_port_http }} default_server;' in nginx_test_fact_http_server_block_definition_contents.stdout"
       - "'server_name {{ nginx_server_blocks_server_name }};' in nginx_test_fact_http_server_block_definition_contents.stdout"
       - "'root  {{ nginx_server_blocks_root }};' in nginx_test_fact_http_server_block_definition_contents.stdout"
-      - "'index {{ nginx_server_blocks_indexes }};' in nginx_test_fact_http_server_block_definition_contents.stdout"
+      - "'index {{ nginx_server_blocks_indexes | join(\" \") }};' in nginx_test_fact_http_server_block_definition_contents.stdout"
 
 - name: get details of http server block definition file in sites-enabled
   stat: path=/etc/nginx/sites-enabled/test-http

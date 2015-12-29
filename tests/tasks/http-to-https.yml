@@ -59,7 +59,7 @@
       - "'listen {{ nginx_server_blocks_listening_port_https }} ssl default_server;' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
       - "'server_name {{ nginx_server_blocks_server_name }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
       - "'root  {{ nginx_server_blocks_root }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
-      - "'index {{ nginx_server_blocks_indexes }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'index {{ nginx_server_blocks_indexes | join(\" \") }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
       - "'ssl_certificate      {{ nginx_server_blocks_tls_certificate_path }}/{{ nginx_server_blocks_tls_certificate_file }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
       - "'ssl_certificate_key  {{ nginx_server_blocks_tls_key_path }}/{{ nginx_server_blocks_tls_key_file }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
       - "'gzip off;' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"

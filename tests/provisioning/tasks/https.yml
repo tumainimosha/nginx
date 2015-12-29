@@ -35,7 +35,7 @@
      src=../../templates/etc/nginx/sites-available/server-block-https.j2
     dest=/etc/nginx/sites-available/test-https
 
-- name: enable https server block definition file
+- name: enable https server block
   file:
       src=/etc/nginx/sites-available/test-https
      dest=/etc/nginx/sites-enabled/test-https

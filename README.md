@@ -153,7 +153,7 @@ See [BARC-](https://jira.ceh.ac.uk/browse/BARC-) for further details.
 
 ## Usage
 
-## Nginx configuration files
+### Nginx configuration files
 
 Nginx uses a single configuration file, `/etc/nginx/nginx.conf`, which controls core Nginx settings (such as the user 
 the web-server runs as), web-server features such as Gzip and server blocks (virtual hosts) along with all the various 
@@ -188,7 +188,7 @@ Note: Sever blocks are also included in the main configuration, but are discusse
 Note: Unlike Apache, Nginx does not support a concept similar to `.htaccess` files, everything must be included in the 
 main Nginx configuration file at some point.
 
-### Main configuration file
+#### Main configuration file
 
 The main Nginx configuration file, `/etc/nginx/nginx.conf`, is purposely designed to be as minimal as possible. Other
 than defining process information, this file simply includes `*.conf` files within `/etc/nginx/conf.d/*.conf`, termed 
@@ -197,7 +197,7 @@ than defining process information, this file simply includes `*.conf` files with
 Additional configuration options **SHOULD NOT** be set in this file. Instead such options **SHOULD** be set within a 
 module configuration file, or an additional configuration file included by a module configuration file.
 
-### Module configuration files
+#### Module configuration files
 
 Module configuration files are high level configuration options, usually specifying a main directive, such as 'http'.
 Each module consists of a single module block, such as (for the 'http' module):
@@ -215,7 +215,7 @@ from some basic configuration options, this file mainly loads additional configu
 Additional configuration options for the 'http' module (and for other modules, except basic settings) **SHOULD NOT** be 
 set in module configuration files. Instead such options **SHOULD** be set within an additional configuration file.
 
-### Additional configuration files
+#### Additional configuration files
 
 Additional configuration files are lower level, feature specific, configuration options, usually focusing on a 
 particular, non-core, feature such as Gzip or TLS/SSL.
@@ -234,7 +234,7 @@ Note: Server block definitions **SHOULD NOT** be specified as additional configu
 files **SHOULD** be specified in `/etc/nginx/sites-available`, with 'enabled' server blocks symbolically linked to 
 `/etc/nginx/site-enabled`. Server block definitions are discussed in more detail in their own section later on.
 
-## Server Blocks (Virtual Hosts) definition files
+### Server Blocks (Virtual Hosts) definition files
 
 Server blocks, known generically as Virtual Hosts in Apache, specify 'servers' which will listen on a set of ports and 
 process requests. Server blocks can be named, if multiple websites are hosted on a single machine. Less commonly, 
@@ -277,7 +277,7 @@ On *CentOS* machines:
 
 See the *limitations* section for more information.
 
-### Server block templates
+#### Server block templates
 
 Despite the wide range of possible roles for 'servers', typically roles are not that unique. This role therefore 
 provides a set of Ansible templates for generating server blocks for these common roles.
@@ -299,7 +299,7 @@ Templates provided by this role are located in `templates/etc/nginx/sites-availa
 in the *Typical Playbook* sub-section. A summary description is provided in each template, though it should be fairly 
 obvious what is happening just by reading each file.
 
-#### Document roots
+##### Document roots
 
 Before using these templates, ensure document roots and/or TLS/SSL certificates/private-keys (if used), exist and have 
 the correct permissions and ownership.
@@ -312,6 +312,10 @@ setting permissions. If you are handling any sensitive information, and you are 
 Applications Team or ICT for additional guidance.
 
 ### TLS/SSL certificates
+
+Note: You **MUST** enable private key material is suitably protected. These ownership and permission settings are
+recommendations only. You **MUST** seek professional advice if you are unsure if you are adequately protecting private
+key material.
 
 Certificates, and their private keys, **SHOULD** be located in operating system specific conventional defaults:
 
@@ -327,10 +331,6 @@ Certificates and private keys **SHOULD** be stored be owned by the root user wit
 Note: In future versions of this role, the location of certificates and private keys may be harmonised to the CentOS
 defaults.
 
-Note: You **MUST** enable private key material is suitably protected. These ownership and permission settings are
-recommendations only. You **MUST** seek professional advice if you are unsure if you are adequately protecting private
-key material.
-
 If you are BAS staff, and are using 'core' certificates (i.e. any certificate for the `bas.ac.uk` domain), you **MUST** 
 contact the Web & Applications Team or ICT to ensure you are following best practice. Otherwise you **SHOULD** seek 
 advice if you are at all unsure.
@@ -341,8 +341,9 @@ the Web & Applications Team. See the
 [BAS Certificate Store](https://stash.ceh.ac.uk/projects/BASWEB/repos/porcupine/browse) project for further information 
 and instructions for using these 'core' certificates.
 
-For other domains, please contact the Web & Applications Team in the first instance to discuss your requirements, as 
-there are NERC guidelines applicable to purchasing certificates.
+For other domains, please contact the Web & Applications Team or BAS ICT to discuss your requirements, as there are 
+NERC guidelines applicable to purchasing certificates.
+
 ### TLS/SSL hardening
 
 This role includes additional options for improving the effectiveness of secure connections. These additional options
@@ -600,11 +601,14 @@ same
 #### *webserver_virtual_hosts_document_indexes*
 
 * **MAY** be specified
-* Specifies a space separated list of files that will be used as an index document
-* Values **MUST** be valid file names as determined by the web server
-* Multiple values **MUST** be separated with spaces
-* The default value, `index.html`, is a conventional default, other values **SHOULD NOT** be used without good reason
-* Default: `index.html`
+* Specifies a list of files that will be used as an index document
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid file names, including any file extension, as determined by the web server
+* The default item values, are conventional defaults, other values **SHOULD NOT** be used without good reason
+* Defaults:
+```
+- index.html
+```
 
 #### *webserver_virtual_hosts_tls_certificate_path*
 
@@ -758,12 +762,11 @@ and *nginx_server_blocks_listening_port_https* are the same
 #### *nginx_server_blocks_indexes*
 
 * **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
-* Specifies files that will be used as an index document
+* Specifies a list of files that will be used as an index document
 * See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_index_module.html) for further information
-* Specifies a space separated list of files that will be used as an index document
-* Values **MUST** be valid file names as determined by Nginx
-* Multiple values **MUST** be separated with spaces
-* By default, the value of this variable is inherited from the *webserver_virtual_hosts_document_indexes* variable
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid file names, including any extension, as determined by Nginx
+* By default, the values of this variable are inherited from the *webserver_virtual_hosts_document_indexes* variable
 * Default: `{{ webserver_virtual_hosts_document_indexes }}`
 
 #### *nginx_server_blocks_tls_certificate_path*
