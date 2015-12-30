@@ -41,7 +41,7 @@ A single scenario is tested *manually* using remote VMs:
 * Installs Nginx and generates core and related configuration files including a HTTP server block which redirects to a 
 HTTPS server block
 
-This remote VM is used to test the TLS configuration used by this role with external tooling (notably SSL Labs).
+This remote VM is used to test the TLS configuration used by this role with external tooling (notably Qualys SSL Labs).
 
 Note: Multiple scenarios may be run within the same VM, providing they do not overlap.
 
