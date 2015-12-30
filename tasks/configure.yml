@@ -47,6 +47,7 @@
     state=directory
   with_items:
     - http
+    - server-blocks
 
 - name: generate additional configuration files
   template:
@@ -57,6 +58,7 @@
     - http/mime
     - http/gzip
     - http/tls
+    - server-blocks/meta-files
   notify: Restart Nginx
 
 - name: ensure default server block definition files are absent to prevent conflicts - CentOS

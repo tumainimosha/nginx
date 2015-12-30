@@ -57,6 +57,7 @@
     - http/tls
     - http/logging
     - http/mime
+    - server-blocks/meta-files
   changed_when: false
   register: nginx_test_fact_additional_nginx_configuration_files_contents
 - name: assert additional configuration files were generated correctly

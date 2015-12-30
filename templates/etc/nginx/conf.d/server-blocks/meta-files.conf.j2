@@ -1,0 +1,28 @@
+# {{ ansible_managed }}
+
+# Additional configuration file - Meta files
+#
+# Options in this file are based on:
+# * https://github.com/h5bp/server-configs/issues/132
+#
+# This file is included within 'server blocks' directives of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+
+# Suppress logging unsuccessful requests for missing, non-critical, files
+# This may not work where a custom 404 error page is used
+
+location = /robots.txt {
+    access_log off;
+    log_not_found off;
+}
+location = /favicon.ico {
+    access_log off;
+    log_not_found off;
+}
+location = /apple-touch-icon.png {
+    access_log off;
+    log_not_found off;
+}
+location = /apple-touch-icon-precomposed.png {
+    access_log off;
+    log_not_found off;
+}

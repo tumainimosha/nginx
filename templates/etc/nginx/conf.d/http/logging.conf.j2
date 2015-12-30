@@ -2,14 +2,25 @@
 
 # Additional configuration file - Logging defaults
 #
-# Options in this file are based on harmonising the Ubuntu and CentOS default configuration files.
+# Options in this file are based on:
+# * harmonising the Ubuntu and CentOS default configuration files
+# * The Nginx administration user guide
 #
 # This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
 
-log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                  '$status $body_bytes_sent "$http_referer" '
-                  '"$http_user_agent" "$http_x_forwarded_for"';
+# Explicitly define the default 'combined' logging format as 'default'
+log_format default '$remote_addr - $remote_user [$time_local] '
+                           '"$request" $status $body_bytes_sent '
+                           '"$http_referer" "$http_user_agent" ';
 
-access_log off;
+# Define logging filter to prevent logging successful (2XX, 3XX) requests in the access log
+map $status $loggable {
+    ~^[23]  0;
+    default 1;
+}
 
+# Log Nginx server errors with a severity of 'warning' or above
 error_log /var/log/nginx/error.log warn;
+
+# Log unsuccessful requests
+access_log /var/log/nginx/access.log default if=$loggable;

@@ -13,7 +13,7 @@ Installs and configures Nginx web-server
 * Installs the latest Nginx release from Nginx maintained package sources, can be disabled to use system packages only
 * Configures Nginx with minimal, safe, main configuration file, harmonised between CentOS and Ubuntu defaults
 * Configures Nginx to load additional configuration files for features (e.g. TLS) and server blocks (i.e. Virtual Hosts)
-* Configures safe defaults for common features: TLS/SSL and Gzip
+* Configures safe and secure defaults for common features such as Logging, TLS/SSL and Gzip
 * Removes default Nginx server blocks to prevent conflicts with user defined server blocks
 * Harmonises Nginx directory structure for server blocks (i.e. sites-available/sites-enabled)
 * Enables access to web-server through the system firewall using a suitable firewall service
@@ -268,12 +268,16 @@ particular, non-core, feature such as Gzip or TLS/SSL.
 Each feature **SHOULD** be contained in a separate file to allow easy management when using automated provisioning.
 This role includes a number of 'common' additional configuration files. Others may be added by additional roles.
 
-Additional files included in this role, through the 'http' module, are:
+Additional files included in this role:
 
-* `gzip.conf` - enabled Gzip compression by default
-* `logging.conf` - enables access and error logging by default
-* `mime.conf` - registers default set of mime types and sets the default mime type
-* `tls.conf` - sets defaults for TLS/SSL connections where used in server blocks
+* In the 'http' module:
+    * `gzip.conf` - Enables Gzip compression by default
+    * `logging.conf` - Enables access and error logging by default
+    * `mime.conf` - Registers default set of mime types and sets the default mime type
+    * `tls.conf` - Sets defaults for TLS/SSL connections where used in server blocks
+
+* In server block templates:
+    * `meta-files.conf` - Suppress logging unsuccessful requests for missing, non-critical, files such as favicons
 
 More information on these additional sections may be provided in other sub-sections in this README.
 
@@ -283,14 +287,12 @@ files **SHOULD** be specified in `/etc/nginx/sites-available`, with 'enabled' se
 
 ### Logging
 
-By default this role will configure Nginx to:
+This role will configure Nginx to:
 
-* Maintain an error log, which will log errors of severity 'warning' and above.
-* Define a 'main' logging format available for access logs, if used
-* Not maintain an access log
-
-An access log can be enabled on per server-block basis, if desired. See the sub-section of *Server Blocks* for more 
-information.
+* Define, explicitly, a 'default' logging format for access logs which is the same as the built-in 'combined' format
+* Define a logging filter to prevent successful requests being logged
+* Maintain an error log, which will log server errors of severity 'warning' and above
+* Maintain an access log, which will only log unsuccessful requests (i.e. 4XX/5XX errors)
 
 ### TLS/SSL configuration
 
@@ -419,22 +421,28 @@ Note: Depending on your use case these recommended permissions may not be suitab
 setting permissions. If you are handling any sensitive information, and you are BAS staff, contact the Web & 
 Applications Team or ICT for additional guidance.
 
-### Logging
 
-If you wish to enable an access log within a server block, no global access log is maintained, set the 
-*nginx_virtual_hosts_access_log* variable as needed.
 
-Note: A generic variable is not available for this option as the conventional default for access logs includes the
-web-server used (i.e. `/var/log/nginx`) which is inherently non-generic. If switching web-server the generic variable
-would need to be changed anyway (i.e. to `/var/log/apache2`), therefore a non-generic variable is used to force this
-change by causing a non-defined variable error.
 
 ### TLS certificates
 
 Before using these templates, ensure any certificates and private keys have been uploaded to the machine and have the
 correct permissions and ownership. See the *TLS/SSL certificates* sub-section for more information.
+#### Meta files
 
 See the *Typical playbook* section for examples of tasks to do this.
+Some clients, mostly web-browsers, will make requests for a conventional, meta, files such as `favicon` or `robots.txt`.
+This role includes an additional configuration file, `meta-files.conf` to suppress logging unsuccessful requests for 
+these files where they are missing.
+
+See `templates/etc/nginx/conf.d/server-blocks/meta-files.conf.j2` in this role for a list of meta files covered.
+
+Note: This additional configuration does not prevent these meta files being used, it simply ignores errors where they
+don't.
+
+Note: If using server-block templates from this role, this additional configuration file will be included automatically.
+To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can
+include this additional configuration file directly if desired.
 
 ### Typical playbook
 
@@ -824,19 +832,6 @@ and *nginx_server_blocks_listening_port_https* are the same
     * Item values **MUST** be valid file names, including any extension, as determined by Nginx
 * By default, the values of this variable are inherited from the *webserver_virtual_hosts_document_indexes* variable
 * Default: `{{ webserver_virtual_hosts_document_indexes }}`
-
-#### *nginx_virtual_hosts_access_log*
-
-* **MAY** be specified
-* Species whether an access log should be maintained for a server block, and if so, in what format
-* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log) for more information
-* See the *Logging* sub-section for more information
-* Values **MUST** be valid options, as determined by Nginx
-* Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
-* Default: `off`
-* Examples:
-    * `/var/log/nginx/access.log main` (common log for all servers)
-    * `/var/log/nginx/{{ nginx_server_blocks_server_name }}-access.log main` (per-server-block logs)
 
 #### *nginx_server_blocks_tls_certificate_path*
 

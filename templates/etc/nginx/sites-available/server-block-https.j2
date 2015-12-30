@@ -15,8 +15,6 @@ server {
     root  {{ nginx_server_blocks_root }};
     index {{ nginx_server_blocks_indexes | join(" ") }};
 
-    access_log {{ nginx_server_blocks_access_log }};
-
     ssl_certificate      {{ nginx_server_blocks_tls_certificate_path }}/{{ nginx_server_blocks_tls_certificate_file }};
     ssl_certificate_key  {{ nginx_server_blocks_tls_key_path }}/{{ nginx_server_blocks_tls_key_file }};
 
@@ -30,4 +28,10 @@ server {
         # First attempt to serve request as file, then as a directory, then fall back to displaying a 404.
         try_files $uri $uri/ =404;
     }
+
+    # Additional configuration files included by this role
+    # Meta-files   - options are set in /etc/nginx/conf.d/server-blocks/meta-files.conf
+
+    # Load additional configuration files blocks
+    include /etc/nginx/conf.d/server-blocks/*.conf;
 }
