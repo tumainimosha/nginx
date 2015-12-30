@@ -7,8 +7,8 @@
 # This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
 
 server {
-    listen {{ nginx_server_blocks_listening_port_https }} ssl default_server;
-    listen [::]:{{ nginx_server_blocks_listening_port_https }} ssl default_server;
+    listen {{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;
+    listen [::]:{{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;
 
     server_name {{ nginx_server_blocks_server_name }};
 

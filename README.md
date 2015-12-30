@@ -294,6 +294,10 @@ This role will configure Nginx to:
 * Maintain an error log, which will log server errors of severity 'warning' and above
 * Maintain an access log, which will only log unsuccessful requests (i.e. 4XX/5XX errors)
 
+### MIME types
+
+This role includes additional options to set the list of know MIME types and set a default value.
+
 ### TLS/SSL configuration
 
 This role includes additional options for improving the, security/robustness and efficiency of secure connections. 

@@ -27,6 +27,11 @@
      src=etc/nginx/tls-dh-parameters/dhparam2048.pem
     dest=/etc/nginx/tls-dh-parameters/dhparam2048.pem
 
+- name: copy mime types
+  copy:
+     src=etc/nginx/mime.types
+    dest=/etc/nginx/mime.types
+
 - name: generate main nginx configuration file
   template:
     src=etc/nginx/nginx.conf.j2
@@ -58,6 +63,7 @@
     - http/mime
     - http/gzip
     - http/tls
+    - http/content
     - server-blocks/meta-files
   notify: Restart Nginx
 

@@ -45,7 +45,7 @@
   assert:
     that:
       - "'# Server Block (Virtual Host) server definition file' in nginx_test_fact_https_server_block_definition_contents.stdout"
-      - "'listen {{ nginx_server_blocks_listening_port_https }} ssl default_server;' in nginx_test_fact_https_server_block_definition_contents.stdout"
+      - "'listen {{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;' in nginx_test_fact_https_server_block_definition_contents.stdout"
       - "'server_name {{ nginx_server_blocks_server_name }};' in nginx_test_fact_https_server_block_definition_contents.stdout"
       - "'root  {{ nginx_server_blocks_root }};' in nginx_test_fact_https_server_block_definition_contents.stdout"
       - "'index {{ nginx_server_blocks_indexes | join(\" \") }};' in nginx_test_fact_https_server_block_definition_contents.stdout"
