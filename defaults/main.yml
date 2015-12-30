@@ -46,6 +46,7 @@ nginx_server_blocks_listening_port_https: "{{ webserver_virtual_hosts_listening_
 nginx_server_blocks_server_name: "{{ webserver_virtual_hosts_server_name | default('_') }}"
 nginx_server_blocks_root: "{{ webserver_virtual_hosts_document_root }}"
 nginx_server_blocks_indexes: "{{ webserver_virtual_hosts_document_indexes }}"
+nginx_server_blocks_access_log: "off"
 
 nginx_server_blocks_tls_certificate_path: "{{ webserver_virtual_hosts_tls_certificate_path }}"
 nginx_server_blocks_tls_certificate_file: "{{ webserver_virtual_hosts_tls_certificate_file }}"

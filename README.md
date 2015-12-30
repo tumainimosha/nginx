@@ -281,6 +281,17 @@ Note: Server block definitions **SHOULD NOT** be specified as additional configu
 files **SHOULD** be specified in `/etc/nginx/sites-available`, with 'enabled' server blocks symbolically linked to 
 `/etc/nginx/site-enabled`. Server block definitions are discussed in more detail in their own section later on.
 
+### Logging
+
+By default this role will configure Nginx to:
+
+* Maintain an error log, which will log errors of severity 'warning' and above.
+* Define a 'main' logging format available for access logs, if used
+* Not maintain an access log
+
+An access log can be enabled on per server-block basis, if desired. See the sub-section of *Server Blocks* for more 
+information.
+
 ### TLS/SSL configuration
 
 This role includes additional options for improving the, security/robustness and efficiency of secure connections. 
@@ -407,6 +418,16 @@ permissions *(0)775* (recursive) recommended for directories and *(0)664* for fi
 Note: Depending on your use case these recommended permissions may not be suitable. If in doubt use common sense when
 setting permissions. If you are handling any sensitive information, and you are BAS staff, contact the Web & 
 Applications Team or ICT for additional guidance.
+
+### Logging
+
+If you wish to enable an access log within a server block, no global access log is maintained, set the 
+*nginx_virtual_hosts_access_log* variable as needed.
+
+Note: A generic variable is not available for this option as the conventional default for access logs includes the
+web-server used (i.e. `/var/log/nginx`) which is inherently non-generic. If switching web-server the generic variable
+would need to be changed anyway (i.e. to `/var/log/apache2`), therefore a non-generic variable is used to force this
+change by causing a non-defined variable error.
 
 ### TLS certificates
 
@@ -803,6 +824,19 @@ and *nginx_server_blocks_listening_port_https* are the same
     * Item values **MUST** be valid file names, including any extension, as determined by Nginx
 * By default, the values of this variable are inherited from the *webserver_virtual_hosts_document_indexes* variable
 * Default: `{{ webserver_virtual_hosts_document_indexes }}`
+
+#### *nginx_virtual_hosts_access_log*
+
+* **MAY** be specified
+* Species whether an access log should be maintained for a server block, and if so, in what format
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log) for more information
+* See the *Logging* sub-section for more information
+* Values **MUST** be valid options, as determined by Nginx
+* Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
+* Default: `off`
+* Examples:
+    * `/var/log/nginx/access.log main` (common log for all servers)
+    * `/var/log/nginx/{{ nginx_server_blocks_server_name }}-access.log main` (per-server-block logs)
 
 #### *nginx_server_blocks_tls_certificate_path*
 

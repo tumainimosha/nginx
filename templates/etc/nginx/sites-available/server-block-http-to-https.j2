@@ -13,6 +13,8 @@ server {
 
     server_name {{ nginx_server_blocks_server_name }};
 
+    access_log {{ nginx_server_blocks_access_log }};
+
     # Redirect all HTTP requests to their HTTPS equivalent
     # Note: A 301 redirect is 'permanent' and so this action will be cached by any server-side or client browser caches.
     return 301 https://$host$request_uri;
