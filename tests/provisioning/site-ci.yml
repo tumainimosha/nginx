@@ -67,6 +67,8 @@
           - "nginx_test_fact_http_to_https_request_details_with_redirect.status == 200"
           - "nginx_test_fact_http_to_https_request_details_with_redirect.server == 'nginx'"
           - "'Hello Rencia' in nginx_test_fact_http_to_https_request_details_with_redirect.content"
+          - "item.x_content_type_options is defined"
+          - "item.strict_transport_security is defined""
   handlers:
     - include: ~/nginx/handlers/main.yml
 

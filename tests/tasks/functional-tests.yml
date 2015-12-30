@@ -16,6 +16,7 @@
     that:
       - "item.status == 200"
       - "'Hello Rencia' in item.content"
+      - "item.x_content_type_options is defined"
   with_items: nginx_test_fact_http_request_details.results
   when: test_http_server_block == true
 
@@ -35,6 +36,8 @@
     that:
       - "item.status == 200"
       - "'Hello Rencia' in item.content"
+      - "item.x_content_type_options is defined"
+      - "item.strict_transport_security is defined"
   with_items: nginx_test_fact_https_request_details.results
   when: test_https_server_block == true
 
@@ -74,5 +77,7 @@
     that:
       - "item.status == 200"
       - "'Hello Rencia' in item.content"
+      - "item.x_content_type_options is defined"
+      - "item.strict_transport_security is defined"
   with_items: nginx_test_fact_http_to_https_request_details_with_redirect.results
   when: test_http_to_https_server_block == true
