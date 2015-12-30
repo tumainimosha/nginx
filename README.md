@@ -271,10 +271,11 @@ This role includes a number of 'common' additional configuration files. Others m
 Additional files included in this role:
 
 * In the 'http' module:
-    * `gzip.conf` - Enables Gzip compression by default
     * `logging.conf` - Enables access and error logging by default
-    * `mime.conf` - Registers default set of mime types and sets the default mime type
     * `tls.conf` - Sets defaults for TLS/SSL connections where used in server blocks
+    * `mime.conf` - Registers MIME types and sets a default
+    * `content.conf` - Sets default character encoding
+    * `gzip.conf` - Enables Gzip compression by default
 
 * In server block templates:
     * `meta-files.conf` - Suppress logging unsuccessful requests for missing, non-critical, files such as favicons
@@ -287,7 +288,7 @@ files **SHOULD** be specified in `/etc/nginx/sites-available`, with 'enabled' se
 
 ### Logging
 
-This role will configure Nginx to:
+This role includes additional options to:
 
 * Define, explicitly, a 'default' logging format for access logs which is the same as the built-in 'combined' format
 * Define a logging filter to prevent successful requests being logged
@@ -348,6 +349,15 @@ and instructions for using these 'core' certificates.
 
 For other domains, please contact the Web & Applications Team or BAS ICT to discuss your requirements, as there are 
 NERC guidelines applicable to purchasing certificates.
+
+### Security headers
+
+This role includes additional options improving security in terms of how resources from this server can be used.
+See `templates/etc/nginx/conf.d/http/security.conf.j2` for more information.
+
+### Default character encoding
+
+This role includes additional options for setting `utf-8` as the default character encoding.
 
 ### Server Blocks (Virtual Hosts)
 
@@ -438,8 +448,8 @@ the machine with the correct permissions and ownership. See the *TLS/SSL certifi
 #### Meta files
 
 Some clients, mostly web-browsers, will make requests for a conventional, meta, files such as `favicon` or `robots.txt`.
-This role includes an additional configuration file, `meta-files.conf` to suppress logging unsuccessful requests for 
-these files where they are missing.
+This role includes an additional configuration file, `server-blocks/meta-files.conf`, to suppress logging unsuccessful 
+requests for these files where they are missing.
 
 See `templates/etc/nginx/conf.d/server-blocks/meta-files.conf.j2` in this role for a list of meta files covered.
 

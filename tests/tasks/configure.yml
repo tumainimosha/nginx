@@ -29,6 +29,16 @@
       - "item.stat.exists == true"
   with_items: nginx_test_fact_tls_certs_private_directories_exist.results
 
+- name: get status of custom dh parameters for tls
+  stat: path=/etc/nginx/tls-dh-parameters/dhparam2048.pem
+  changed_when: false
+  register: nginx_test_fact_tls_dh_parameters_contents
+- name: assert custom dh parameters for tls exists
+  assert:
+    that:
+      - "nginx_test_fact_tls_dh_parameters_contents.stat.exists is defined"
+      - "nginx_test_fact_tls_dh_parameters_contents.stat.exists == true"
+
 - name: get status of custom mime types
   stat: path=/etc/nginx/mime.types
   changed_when: false
@@ -63,10 +73,11 @@
 - name: get contents of additional configuration files
   command: "cat /etc/nginx/conf.d/{{ item }}.conf"
   with_items:
-    - http/gzip
-    - http/tls
     - http/logging
+    - http/tls
     - http/mime
+    - http/gzip
+    - http/security
     - http/content
     - server-blocks/meta-files
   changed_when: false

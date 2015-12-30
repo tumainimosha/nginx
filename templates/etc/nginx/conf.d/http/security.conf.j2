@@ -18,3 +18,7 @@ add_header X-Content-Type-Options nosniff;
 # Protect against some cross site scripting attacks (used by IE 8+ only)
 # source: https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/
 add_header X-XSS-Protection "1; mode=block";
+
+# Not strictly security related, but stop some mobile operators modifying responses
+# source: https://github.com/h5bp/server-configs-nginx/blob/master/h5bp/directive-only/no-transform.conf
+add_header "Cache-Control" "no-transform";
