@@ -367,15 +367,21 @@ Each server block **SHOULD** be specified in its own file in `/etc/nginx/sites-a
 be used **MUST** be symbolically linked to `/etc/nginx/sites-enabled/`. Requiring this extra step allows easy control 
 over which servers are used, without having to comment out definitions files or moving definition files elsewhere.
 
-Note: This role does not manage server block definitions directly. Templates, discussed later, for generating server
-blocks are provided by this role, but tasks to generate them and manage document roots, certificates, etc. need to be
-implemented outside this role.
+You **SHOULD** read these resources if you are using 'custom' server blocks:
+
+* [Common pitfalls](https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/) to avoid common 
+mistakes
+* [Nginx directly](https://www.nginx.com/resources/wiki/start/) for pre-written samples for a range of use-cases 
+
+Note: This role does not manage server block definitions directly. Templates, discussed later, for generating common 
+server blocks are provided by this role, but tasks to generate them and manage document roots, certificates, etc. need 
+to be implemented outside of this role.
 
 Note: Server block definition files **MUST NOT** use a file extension or they won't be included in the Nginx 
 configuration file, even when enabled.
 
 Note: Don't name definition files with any of these, exact, names as this role will remove them (these are default 
-definitions installed by Nginx, but which when enabled may cause conflicts):
+definitions installed by Nginx, but which when enabled, may cause conflicts):
 
 On *Ubuntu* machines:
 
@@ -399,20 +405,14 @@ These templates purposely do not cater to every role and use-case, there are sim
 server blocks, not based on templates from this role, will be used as needed. This role will therefore not interfere
 with server blocks, regardless of whether they are based on templates from this role or not.
 
-Nginx provides detailed guidance on server blocks, if you are using 'custom' server blocks you are **SHOULD** read 
-these resources:
-
-* [Common pitfalls](https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/) to avoid common 
-mistakes
-* [Nginx directly](https://www.nginx.com/resources/wiki/start/) for pre-written samples for a range of use-cases 
-
 Templates provided by this role are located in `templates/etc/nginx/sites-available/`, examples of using them are shown 
-in the *Typical Playbook* sub-section. A summary description is provided in each template, though it should be fairly 
-obvious what is happening just by reading each file.
+in the *Typical Playbook* sub-section. A summary is provided in each template, though it should be fairly obvious what 
+is happening by reading each file.
 
-##### Document root
+Server block templates are configured to include relevant additional configuration files, see the *Additional 
+configuration files* sub-section for more information.
 
-Before using these templates, ensure the document root exists and has the correct permissions and ownership.
+#### Document root
 
 Document roots should be accessible to the web-server group (`www-data` on Ubuntu machines, `nginx` on CentOS), with
 permissions *(0)775* (recursive) recommended for directories and *(0)664* for files.
@@ -421,16 +421,18 @@ Note: Depending on your use case these recommended permissions may not be suitab
 setting permissions. If you are handling any sensitive information, and you are BAS staff, contact the Web & 
 Applications Team or ICT for additional guidance.
 
+Note: If using server-block templates from this role, ensure the document root exists and has the correct permissions 
+and ownership before generating the template.
 
-
-
-### TLS certificates
-
-Before using these templates, ensure any certificates and private keys have been uploaded to the machine and have the
-correct permissions and ownership. See the *TLS/SSL certificates* sub-section for more information.
-#### Meta files
+#### TLS certificates
 
 See the *Typical playbook* section for examples of tasks to do this.
+
+Note: If using server-block templates from this role, ensure any certificates and private keys have been uploaded to 
+the machine with the correct permissions and ownership. See the *TLS/SSL certificates* sub-section for more information.
+
+#### Meta files
+
 Some clients, mostly web-browsers, will make requests for a conventional, meta, files such as `favicon` or `robots.txt`.
 This role includes an additional configuration file, `meta-files.conf` to suppress logging unsuccessful requests for 
 these files where they are missing.
