@@ -65,7 +65,9 @@
     - http/gzip
     - http/security
     - http/content
+    - http/static-caching
     - server-blocks/meta-files
+    - server-blocks/static-caching
   notify: Restart Nginx
 
 - name: ensure default server block definition files are absent to prevent conflicts - CentOS

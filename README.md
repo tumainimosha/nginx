@@ -279,6 +279,7 @@ Additional files included in this role:
 
 * In server block templates:
     * `meta-files.conf` - Suppress logging unsuccessful requests for missing, non-critical, files such as favicons
+    * `static-caching` - Adds caching for various types of static content (images, CSS, JS, etc.)
 
 More information on these additional sections may be provided in other sub-sections in this README.
 
@@ -358,6 +359,13 @@ See `templates/etc/nginx/conf.d/http/security.conf.j2` for more information.
 ### Default character encoding
 
 This role includes additional options for setting `utf-8` as the default character encoding.
+
+### Gzip
+
+This role includes additional options for configuring Gzip compression.
+
+The range of mime types to be compressed are set by the *webserver_config_gzip_types* variable. Other basic options are
+set in the included configuration file.
 
 #### Gzip with TLS
 
@@ -468,6 +476,22 @@ See `templates/etc/nginx/conf.d/server-blocks/meta-files.conf.j2` in this role f
 
 Note: This additional configuration does not prevent these meta files being used, it simply ignores errors where they
 don't.
+
+Note: If using server-block templates from this role, this additional configuration file will be included automatically.
+To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can
+include this additional configuration file directly if desired.
+
+#### Static caching
+
+This role includes additional options for configuring the caching of static content.
+
+This includes: images, audio, video, web-fonts RSS feeds, CSS and JS. Various cache times are used for each media type.
+
+Known dynamic content is explicitly excluded from caching, this includes: HTML, XML and JSON. You can adjust this if
+needed, or perform caching at a lower or higher level (within applications, or using a caching layer, respectively).
+
+Note: By default CSS and JS will be cached for 1 year. 'Cache-busting' will therefore be needed if CSS/JS are expected
+to change during this time. Various build tools and frameworks can automate this process if needed.
 
 Note: If using server-block templates from this role, this additional configuration file will be included automatically.
 To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can

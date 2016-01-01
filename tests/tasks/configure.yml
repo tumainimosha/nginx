@@ -80,6 +80,7 @@
     - http/security
     - http/content
     - server-blocks/meta-files
+    - server-blocks/static-caching
   changed_when: false
   register: nginx_test_fact_additional_nginx_configuration_files_contents
 - name: assert additional configuration files were generated correctly

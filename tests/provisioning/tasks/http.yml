@@ -9,13 +9,17 @@
      mode=0775
     state=directory
 
-- name: ensure document root index file exists and has correct owner and permissions
+- name: ensure document root files exist and have correct owner and permissions
   copy:
-      src=data/var/www/html/index.html
-     dest="{{ webserver_virtual_hosts_document_root }}/index.html"
+      src="data/var/www/html/{{ item }}"
+     dest="{{ webserver_virtual_hosts_document_root }}/{{ item }}"
     owner="{{ nginx_config_core_user }}"
     group="{{ nginx_config_core_user }}"
      mode=0664
+  with_items:
+    - index.html
+    - normalise.css
+    - fluffy.jpg
 
 - name: generate http server block definition file
   template:
