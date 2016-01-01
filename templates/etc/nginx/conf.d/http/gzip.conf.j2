@@ -2,10 +2,11 @@
 
 # Additional configuration file - Gzip defaults
 #
-# Options in this file are based on harmonising the Ubuntu and CentOS default configuration files
+# Options in this file are based on:
 #
-# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'
 
+# Enable Gzip compression
 gzip {{ nginx_config_gzip_enable_gzip }};
 gzip_disable "msie6";
 gzip_types {{ nginx_config_gzip_types | join(" ") }};

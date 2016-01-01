@@ -51,3 +51,5 @@ nginx_server_blocks_tls_certificate_path: "{{ webserver_virtual_hosts_tls_certif
 nginx_server_blocks_tls_certificate_file: "{{ webserver_virtual_hosts_tls_certificate_file }}"
 nginx_server_blocks_tls_key_path: "{{ webserver_virtual_hosts_tls_key_path }}"
 nginx_server_blocks_tls_key_file: "{{ webserver_virtual_hosts_tls_key_file }}"
+
+nginx_server_blocks_tls_enable_gzip: "off"

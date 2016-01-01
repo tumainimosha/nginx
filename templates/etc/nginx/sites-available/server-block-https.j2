@@ -20,9 +20,9 @@ server {
 
     # Additional TLS/SSL options are set in /etc/nginx/conf.d/tls.conf
 
-    # Gzip is disabled for secure traffic due to a vulnerability in Nginx
+    # Gzip is disabled by default for secure traffic due to a vulnerability in Nginx
     # Source: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=773332
-    gzip off;
+    gzip {{ nginx_server_blocks_tls_enable_gzip }};
 
     location / {
         # First attempt to serve request as file, then as a directory, then fall back to displaying a 404.

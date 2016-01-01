@@ -10,14 +10,14 @@ Installs and configures Nginx web-server
 
 ## Overview
 
-* Installs the latest Nginx release from Nginx maintained package sources, can be disabled to use system packages only
-* Configures Nginx with minimal, safe, main configuration file, harmonised between CentOS and Ubuntu defaults
-* Configures Nginx to load additional configuration files for features (e.g. TLS) and server blocks (i.e. Virtual Hosts)
-* Configures safe and secure defaults for common features such as Logging, TLS/SSL and Gzip
-* Removes default Nginx server blocks to prevent conflicts with user defined server blocks
-* Harmonises Nginx directory structure for server blocks (i.e. sites-available/sites-enabled)
-* Enables access to web-server through the system firewall using a suitable firewall service
-* Provides templates for generating, minimal: HTTP, HTTPS, and HTTP redirecting to HTTPS server block definition files
+* Installs the latest stable version of Nginx from Nginx, or optionally, from system packages instead
+* Configures main Nginx configuration file using harmonised defaults from supported operating systems
+* Configures additional aspects of Nginx, including: logging, SSL/TLS, security, MIME types, Gzip and caching
+* SSL/TLS configuration scores an **A+** rating using Qualys SSL Labs SSL Server Test
+* Removes default server blocks (virtual hosts) to prevent conflicts
+* Configures harmonised structure for server block definition files using sites-available/sites-enabled
+* Optionally, configures the system firewall to allow access to Nginx services (HTTP/HTTPS), this is enabled by default
+* Provides Ansible templates for generating server blocks for common purposes, including HTTP redirecting to HTTPS
 
 ## Quality Assurance
 
@@ -358,6 +358,19 @@ See `templates/etc/nginx/conf.d/http/security.conf.j2` for more information.
 ### Default character encoding
 
 This role includes additional options for setting `utf-8` as the default character encoding.
+
+#### Gzip with TLS
+
+Due to known vulnerabilities [1] with combining Gzip with TLS, this role disables Gzip in included secure server block 
+templates. This is a precautionary measure and may not be sufficiently concerning in all situations, compared to the 
+missed benefits Gzip brings.
+
+It is therefore your decision whether to use Gzip with TLS, however you should ensure you are fully aware of the 
+consequences in doing so. If you wish to do so, set the `nginx_server_blocks_tls_enable_gzip` variable to `"on"`.
+
+If you are BAS staff, contact the Web & Applications Team or BAS ICT to discuss your requirements.
+
+[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=773332
 
 ### Server Blocks (Virtual Hosts)
 
@@ -776,7 +789,6 @@ implications if overriding this value, see the *Limitations* section for more in
 * **MAY** be specified
 * Specifies whether Gzip compression should be applied to responses
 * See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip) for more information
-* This variable is used as a 'feature flag' for whether Gzip compression is used
 * Values **MUST** use one of these options, as determined by Nginx:
   * `on`
   * `off`
@@ -886,6 +898,18 @@ and *nginx_server_blocks_listening_port_https* are the same
 * Values **MUST** be a valid system file, including any file extension, as determined by Nginx
 * By default, the value of this variable is inherited from the *webserver_virtual_hosts_tls_key_file* variable
 * Default: `{{ webserver_virtual_hosts_tls_key_file }}`
+
+#### *nginx_server_blocks_tls_enable_gzip*
+
+* **MAY** be specified
+* Specifies whether Gzip compression is enabled using TLS
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip) for more information
+* There are specific concerns when using TLS with Gzip, see the *Gzip with TLS* sub-section for more information
+* Values **MUST** use one of these options, as determined by Nginx:
+  * `on`
+  * `off`
+* Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
+* Default: `off`
 
 ## Developing
 
