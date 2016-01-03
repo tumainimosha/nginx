@@ -3,7 +3,7 @@
 
 - name: generate firewall service for nginx - CentOS/firewalld
   template:
-     src="../../templates/etc/firewalld/services/{{ item }}.xml.j2"
+     src="etc/firewalld/services/{{ item }}.xml.j2"
     dest="/etc/firewalld/services/{{ item }}.xml"
   with_items:
     - nginx-http
@@ -26,7 +26,7 @@
 
 - name: generate firewall service for nginx - Ubuntu/UFW
   template:
-     src=../../templates/etc/ufw/applications.d/nginx.j2
+     src=etc/ufw/applications.d/nginx.j2
     dest=/etc/ufw/applications.d/nginx
   when: ansible_distribution == "Ubuntu"
 
