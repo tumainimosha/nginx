@@ -1,0 +1,75 @@
+---
+# Setup infrastructure for testing role
+
+# Apply role to test VMs,
+# host-vars are used to control which features of the role are applied to each VM.
+# For each test a set of tasks will be run to check the selected features of roles are correctly applied.
+
+- name: test creating a http to https server block using the nginx role
+  hosts: local
+  become: yes
+  vars:
+    webserver_virtual_hosts_tls_certificate_file: tls-cert-snakeoil.crt
+    webserver_virtual_hosts_tls_key_file: tls-cert-snakeoil.key
+    rencia:
+      - test-http-redirect
+      - test-https
+  pre_tasks:
+    - name: install firewall package
+      apt:
+                     pkg={{ item }}
+            update_cache=yes
+        cache_valid_time=3600
+                   state=present
+      with_items:
+        - ufw
+    - name: ensure firewall is running
+      ufw: state=enabled
+    - name: stop existing apache instance getting in the way
+      service:
+         name=apache2
+        state=stopped
+  roles:
+    - ~/nginx
+  tasks:
+    # Re-use subset of 'Management and configuration' tests used in local testing
+    - include: tasks/http-to-https.yml
+    - include: ../tasks/main.yml
+    - include: ../tasks/http-to-https.yml
+    # It is necessary to restart Nginx/UFW before running functional tests
+    # In CI these are run in the same playbook, therefore we need to force them to run now
+    - meta: flush_handlers
+    # Re-use subset of 'Functional' tests used in local testing
+    - name: make request for index of http server block which redirects to https without following redirect
+      uri:
+                     url="http://localhost/index.html"
+        follow_redirects=none
+             status_code=301
+      changed_when: false
+      register: nginx_test_fact_http_to_https_request_details_without_redirect
+    - name: assert request for index of http server block which redirects to https without following redirects generates a redirect
+      assert:
+        that:
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.status == 301"
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.location is defined"
+          - "nginx_test_fact_http_to_https_request_details_without_redirect.server == 'nginx'"
+          - "'https://' in nginx_test_fact_http_to_https_request_details_without_redirect.location"
+    - name: make request for index of http server block which redirects to https again following redirects
+      uri:
+                   url="http://localhost/index.html"
+        return_content=yes
+        validate_certs=no
+      changed_when: false
+      register: nginx_test_fact_http_to_https_request_details_with_redirect
+    - name: assert request for index of http server block which redirects to https following redirects was successful and with correct headers
+      assert:
+        that:
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.status == 200"
+          - "'Test Page' in nginx_test_fact_http_to_https_request_details_with_redirect.content"
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.server == 'nginx'"
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.strict_transport_security is defined"
+          - "nginx_test_fact_http_to_https_request_details_with_redirect.cache_control is defined"
+          - "'no-cache' in nginx_test_fact_http_to_https_request_details_with_redirect.cache_control"
+  handlers:
+    - include: ~/nginx/handlers/main.yml
+

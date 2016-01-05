@@ -1,9 +1,0 @@
----
-# Configure Nginx for use with app user
-
-- name: assign web-server rights to app user
-  user: name="{{ nginx_app_user_username }}" groups=www-data
-
-- name: assign ownership of web root to app user
-  file: path=/var/www owner="{{ nginx_app_user_username }}" group=www-data recurse=yes
-  when: nginx_default_var_www_document_root == "/var/www/"

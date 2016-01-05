@@ -1,0 +1,29 @@
+# {{ ansible_managed }}
+
+# Server Block (Virtual Host) server definition file
+#
+# This file was generated from a template for non-secure (HTTP) server blocks.
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+
+server {
+    listen {{ nginx_server_blocks_listening_port_http }} default_server deferred;
+    listen [::]:{{ nginx_server_blocks_listening_port_http }} default_server deferred;
+
+    server_name {{ nginx_server_blocks_server_name }};
+
+    root  {{ nginx_server_blocks_root }};
+    index {{ nginx_server_blocks_indexes | join(" ") }};
+
+    location / {
+        # First attempt to serve request as file, then as a directory, then fall back to displaying a 404.
+        try_files $uri $uri/ =404;
+    }
+
+    # Additional configuration files included by this role
+    # Meta-files     - options are set in /etc/nginx/conf.d/server-blocks/meta-files.conf
+    # Static caching - options are set in /etc/nginx/conf.d/server-blocks/static-caching.conf
+
+    # Load additional configuration files blocks
+    include /etc/nginx/conf.d/server-blocks/*.conf;
+}

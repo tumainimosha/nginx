@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+# Server Block (Virtual Host) server definition file
+#
+# This file was generated from a template for responding to Lets Encrypt ACME challenges.
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+
+server {
+    listen {{ nginx_server_blocks_listening_port_http }} default_server;
+    listen [::]:{{ nginx_server_blocks_listening_port_http }} default_server;
+
+    server_name {{ nginx_server_blocks_server_name }};
+
+    root /var/www;
+
+    location /.well-known/acme-challenge/ {
+        alias /var/www/challenges/;
+        # First attempt to serve request as file, then fall back to displaying a 404.
+        try_files $uri =404;
+    }
+}

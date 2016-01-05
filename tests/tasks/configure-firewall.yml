@@ -1,0 +1,64 @@
+---
+# Checks modifications to the system firewall needed for Nginx to function are set correctly
+
+- name: get contents of http firewall service definition files - CentOS/firewalld
+  command: "cat /etc/firewalld/services/{{ item }}.xml"
+  with_items:
+    - nginx-http
+    - nginx-http-https
+  changed_when: false
+  when: ansible_distribution == "CentOS"
+  register: nginx_test_fact_http_firewall_service_definition_files_contents_centos
+- name: assert http port is set correctly in http firewall service definition files - CentOS/firewalld
+  assert:
+    that: "'{{ nginx_firewall_port_http }}' in item.stdout"
+  with_items: nginx_test_fact_http_firewall_service_definition_files_contents_centos.results
+  when: ansible_distribution == "CentOS"
+
+- name: get contents of https firewall service definition files - CentOS/firewalld
+  command: "cat /etc/firewalld/services/{{ item }}.xml"
+  with_items:
+    - nginx-https
+    - nginx-http-https
+  changed_when: false
+  when: ansible_distribution == "CentOS"
+  register: nginx_test_fact_https_firewall_service_definition_files_contents_centos
+- name: assert https port is set correctly in https firewall service definition files - CentOS/firewalld
+  assert:
+    that: "'{{ nginx_firewall_port_https }}' in item.stdout"
+  with_items: nginx_test_fact_https_firewall_service_definition_files_contents_centos.results
+  when: ansible_distribution == "CentOS"
+
+- name: get contents of nginx firewall service definition file - Ubuntu/UFW
+  command: cat /etc/ufw/applications.d/nginx
+  changed_when: false
+  when: ansible_distribution == "Ubuntu"
+  register: nginx_test_fact_nginx_firewall_service_definition_file_contents_ubuntu
+- name: assert ports are set correctly in nginx firewall service definition file - Ubuntu/UFW
+  assert:
+    that:
+      - "'ports={{ nginx_firewall_port_http }}/tcp' in nginx_test_fact_nginx_firewall_service_definition_file_contents_ubuntu.stdout"
+      - "'ports={{ nginx_firewall_port_https }}/tcp' in nginx_test_fact_nginx_firewall_service_definition_file_contents_ubuntu.stdout"
+      - "'ports={{ nginx_firewall_port_http }},{{ nginx_firewall_port_https }}/tcp' in nginx_test_fact_nginx_firewall_service_definition_file_contents_ubuntu.stdout"
+  when: ansible_distribution == "Ubuntu"
+
+# The trailing white-space in these assertions is required to prevent sub-string coincidence matches in firewalld
+- name: get permanent firewall rules for enabled services in the default firewall zone - CentOS/firewalld
+  command: firewall-cmd --list-services --permanent
+  changed_when: false
+  when: ansible_distribution == "CentOS"
+  register: nginx_test_fact_firewall_permanently_enabled_services
+- name: assert relevant nginx firewall service is active and permanent - CentOS/firewalld
+  assert:
+    that: "'{{ nginx_firewall_rule }} ' in nginx_test_fact_firewall_permanently_enabled_services.stdout + ' '"
+  when: ansible_distribution == "CentOS"
+
+- name: get firewall rules for enabled applications - Ubuntu/UFW
+  shell: sudo ufw status | tr -s ' ' | cut -d ' ' -f 1
+  changed_when: false
+  when: ansible_distribution == "Ubuntu"
+  register: nginx_test_fact_firewall_enabled_services
+- name: assert relevant nginx firewall service is enabled - Ubuntu/UFW
+  assert:
+    that: "'{{ nginx_firewall_rule }}\n' in nginx_test_fact_firewall_enabled_services.stdout"
+  when: ansible_distribution == "Ubuntu"

@@ -1,4 +1,15 @@
 ---
+# Handlers for nginx
 
 - name: Restart Nginx
-  service: name=nginx state=restarted
+  service:
+     name=nginx
+    state=restarted
+
+- name: Restart Firewall - CentOS
+  service:
+     name=firewalld
+    state=restarted
+
+- name: Restart Firewall - Ubuntu
+  ufw: state=reloaded

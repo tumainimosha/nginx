@@ -1,0 +1,5 @@
+---
+# These variables override those defined by roles
+
+# Generic variables - for overriding all roles of a particular type (e.g. operating system, web-servers, etc.)
+webserver_firewall_rule: http

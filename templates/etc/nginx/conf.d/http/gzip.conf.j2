@@ -1,0 +1,34 @@
+# {{ ansible_managed }}
+
+# Additional configuration file - Gzip defaults
+#
+# Options in this file are based on:
+# * harmonising the Ubuntu and CentOS default configuration files
+# * https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'
+
+# Enable Gzip compression
+gzip {{ nginx_config_gzip_enable_gzip }};
+gzip_disable "msie6";
+
+# Compression level
+# (1-9) 5 is a perfect compromise between size and cpu usage, offering about 75% reduction for most ascii files
+gzip_comp_level 5;
+
+# Set minimum threshold for compression
+# Don't compress anything that's already small and unlikely to shrink much if at all (the default is 20 bytes, which is
+# bad as that usually leads to larger files after gzipping)
+gzip_min_length 256;
+
+# Compress data even for clients that are connecting via proxies, using the "Via" header (required for CloudFront).
+gzip_proxied any;
+
+# Tell proxies to cache both the gzipped and regular version of a resource whenever the client's Accept-Encoding
+# capabilities header varies; Avoids the issue where a non-gzip capable client (which is extremely rare today) would
+# display gibberish if their proxy gave them the gzipped version.
+gzip_vary on;
+
+# Compress all output labelled with one of the following MIME-types
+# text/html is always compressed by HttpGzipModule
+gzip_types {{ nginx_config_gzip_types | join(" ") }};

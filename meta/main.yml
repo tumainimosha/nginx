@@ -1,22 +1,21 @@
 ---
 galaxy_info:
-  description: Installs Nginx web-sever using default virtual host
-  author: British Antarctic Survey - Web and Applications Team
+  author: Felix Fennell
+  description: Installs and configures Nginx web-server
   company: British Antarctic Survey
+
+  issue_tracker_url: https://jira.ceh.ac.uk/browse/BARC
   license: MIT
-  min_ansible_version: 1.6
+  min_ansible_version: 1.8
+
   platforms:
+  - name: EL
+    versions:
+      - 7
   - name: Ubuntu
+    versions:
       - trusty
+
   categories:
+  - system
   - web
-
-armadillo_info:
-  name: Nginx
-  version: 1.0.1
-  source: git@stash.ceh.ac.uk:7999/barc/nginx.git
-  dependencies:
-  - git@stash.ceh.ac.uk:7999/barc/core.git#v0.9.4
-
-dependencies:
-  - core

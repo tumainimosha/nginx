@@ -1,0 +1,38 @@
+# {{ ansible_managed }}
+
+# Server Block (Virtual Host) server definition file
+#
+# This file was generated from a template for secure (HTTPS) server blocks.
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'.
+
+server {
+    listen {{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;
+    listen [::]:{{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;
+
+    server_name {{ nginx_server_blocks_server_name }};
+
+    root  {{ nginx_server_blocks_root }};
+    index {{ nginx_server_blocks_indexes | join(" ") }};
+
+    ssl_certificate      {{ nginx_server_blocks_tls_certificate_path }}/{{ nginx_server_blocks_tls_certificate_file }};
+    ssl_certificate_key  {{ nginx_server_blocks_tls_key_path }}/{{ nginx_server_blocks_tls_key_file }};
+
+    # Additional TLS/SSL options are set in /etc/nginx/conf.d/tls.conf
+
+    # Gzip is disabled by default for secure traffic due to a vulnerability in Nginx
+    # Source: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=773332
+    gzip {{ nginx_server_blocks_tls_enable_gzip }};
+
+    location / {
+        # First attempt to serve request as file, then as a directory, then fall back to displaying a 404.
+        try_files $uri $uri/ =404;
+    }
+
+    # Additional configuration files included by this role
+    # Meta-files     - options are set in /etc/nginx/conf.d/server-blocks/meta-files.conf
+    # Static caching - options are set in /etc/nginx/conf.d/server-blocks/static-caching.conf
+
+    # Load additional configuration files blocks
+    include /etc/nginx/conf.d/server-blocks/*.conf;
+}

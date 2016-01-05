@@ -1,0 +1,45 @@
+# {{ ansible_managed }}
+
+# Module configuration file - http configuration
+#
+# Options in this file are based on:
+# * harmonising the Ubuntu and CentOS default configuration files
+# * https://github.com/h5bp/server-configs-nginx
+#
+# This file is included directly within the main Nginx configuration file '/etc/nginx/nginx.conf'.
+#
+# Server block (virtual host) definitions *SHOULD NOT* be listed in this file. Instead:
+# 1. Create a server block definition file in '/etc/nginx/sites-available/'
+# 2. Create a symbolic link to this definition file in '/etc/nginx/sites-enabled/'
+# 3. Restart the Nginx service
+#
+# Similarly, configuration for additional features of this module, such as Gzip, proxies and SSL/TLS *SHOULD NOT* be
+# listed in this file. Instead:
+# 1. Create a suitable configuration file in '/etc/nginx/conf.d/http/' (or symoblic link a file to this directory)
+# 2. Restart the Nginx service
+
+http {
+    # Basic settings
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay off;
+    keepalive_timeout 20;
+    types_hash_max_size 2048;
+    server_tokens off;
+
+    # Additional configuration files included by Nginx by default
+    # Logging    - defaults are set in /etc/nginx/conf.d/http/logging.conf
+    # SSL/TLS    - defaults are set in /etc/nginx/conf.d/http/tls.conf
+    # Mime types - defaults are set in /etc/nginx/conf.d/http/mime.conf
+    # Gzip       - defaults are set in /etc/nginx/conf.d/http/gzip.conf
+
+    # Additional configuration files included by this role
+    # Security   - options are set in /etc/nginx/conf.d/http/security-hardening.conf
+    # Content    - options are set in /etc/nginx/conf.d/http/content.conf
+
+    # Load additional configuration files
+    include /etc/nginx/conf.d/http/*.conf;
+
+    # Load enabled server blocks
+    include /etc/nginx/sites-enabled/*;
+}

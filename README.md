@@ -1,99 +1,1061 @@
-# Nginx ('nginx')
+# Nginx (`nginx`)
+
+Master:
+[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/533434/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+
+Develop:
+[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/535637/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+
+Installs and configures Nginx web-server
 
 **Part of the BAS Ansible Role Collection (BARC)**
 
-Installs Nginx web-sever using default virtual host
-
 ## Overview
 
-* Installs Nginx server from the Nginx stable PPA to ensure the latest stable version is used.
-* Configures default virtual host for HTTP connections, if a non-default document root is used the virtual server will be configured to point to this location.
-* Optionally configures virtual host for HTTPS connections, if a non-default document root is used the virtual host will be configured to point to this location.
-* The app user is made a member of the `www-data` group and ownership of the default document root is set to the 'app' user.
-* Optionally allows non-default ports and IP bindings to be set (i.e. listening for local connections only or setting port 80 to 8080).
-* Includes SSL hardening rules to give an "A+" rating against the SSL Labs tests.
+* Installs the latest stable version of Nginx from Nginx, or optionally, from system packages instead
+* Configures main Nginx configuration file using harmonised defaults from supported operating systems
+* Configures additional aspects of Nginx, including: logging, SSL/TLS, security, MIME types, Gzip and caching
+* SSL/TLS configuration scores an **A+** rating using Qualys SSL Labs SSL Server Test
+* Removes default server blocks (virtual hosts) to prevent conflicts
+* Configures harmonised structure for server block definition files using sites-available/sites-enabled
+* Optionally, configures the system firewall to allow access to Nginx services (HTTP/HTTPS), this is enabled by default
+* Provides Ansible templates for generating server blocks for common purposes, including HTTP redirecting to HTTPS
 
-## Availability
+## Quality Assurance
 
-This role is designed for internal use but if useful can be shared publicly.
+This role uses manual and automated testing to ensure the features offered by this role work as advertised. 
+See `tests/README.md` for more information.
+
+## Dependencies
+
+* None
+
+## Requirements
+
+* If generating HTTPS server blocks, using templates provided by this role, a valid certificate/private-key
+
+Certificates, and associated private keys, **MUST** be acquired from a suitable provider and copied to the server for 
+use by Nginx. This role will not perform any of these functions for you, including generating the secure server block 
+definition file. See the *usage* section for further details on generating server blocks using this role.
+
+* A valid document root
+
+A suitable document root (with or without content) **MUST** be created, populated for use by Nginx . This role will not
+perform any of these functions for you, including generating server block definition files. See the *usage* section for 
+further details on generating server blocks using this role.
+
+## Limitations
+
+* Some variables in this role cannot be easily overridden
+
+This specifically affects: *webserver_virtual_hosts_tls_certificate_path*, *webserver_virtual_hosts_tls_key_path*, 
+*nginx_config_core_pid* and *nginx_config_core_user*.
+
+Values for these variables vary on each supported operating system and therefore cannot be defined as variables in 
+`defaults/main.yml` (which are universal). Ansible does not support conditionally importing additional variables at 
+the same priority of role 'defaults' (i.e. variables defined in `defaults/main.yml`), therefore these variables must be 
+set in `vars/` within this role, and conditionally loaded using the 
+[include_vars module](http://docs.ansible.com/ansible/include_vars_module.html).
+
+Variables set at this priority cannot be easily overridden in playbooks (i.e. using the `vars` option), or in variable 
+files (i.e. using the `vars_files` option). In fact only 'extra_vars' set on the command line can override variables of
+this precedence.
+
+Given the nature of these variables, it is not expected likely users will need (or want) to changes the values for these
+variables, and therefore the difficultly needed to override them is considered an acceptable, and not significant 
+limitation. However, if other variables need to be defined in this way this may need to revisited in the future.
+
+*This limitation is **NOT** considered to be significant. Solutions will **NOT** be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See the 
+[Ansible Documentation](http://docs.ansible.com/ansible/playbooks_variables.html#variable-precedence-where-should-i-put-a-variable) 
+for further details on variable precedence.
+
+See [BARC-93](https://jira.ceh.ac.uk/browse/BARC-93) for further details.
+
+* Non-system sources cannot be used for installing Nginx on CentOS
+
+There is no Nginx package available from system package sources on CentOS. Therefore, non-system sources will always be 
+used. If this is unacceptable you **MUST** use another role.
+
+*This limitation is **NOT** considered to be significant. Solutions will **NOT** be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See [BARC-94](https://jira.ceh.ac.uk/browse/BARC-94) for further details.
+
+* Firewall rules generated by this role assume a single HTTP port and a single HTTPS will be used
+
+In situations where you configure multiple server blocks to listen on multiple ports (i.e server block A listens on 
+ports 80/443 and server B listens on ports 81/444), the firewall rules, generated by this role within firewall 
+services, will not include additional ports (i.e. only ports 80/443 will be included).
+
+This can be overcome by generating custom firewall services with additional rules allowing extra ports, or modifying 
+the system firewall directly (not recommended). Care must be taken to use unique firewall service names, otherwise this
+role will clobber firewall service definition files, and firewall configurations.
+
+Though this is relatively simple limitation to fix within templates in this role, it is not a priority, as is BAS 
+projects, each project uses its own web-servers hosted behind a load balancer. Therefore only one server block (for each 
+particular project), and one set of ports, is needed.
+
+*This limitation is **NOT** considered to be significant. Solutions will **NOT** be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See [BARC-95](https://jira.ceh.ac.uk/browse/BARC-95) for further details.
+
+* Headers set in server blocks cancel out headers set at higher levels
+
+Nginx supports adding arbitrary headers at multiple levels (i.e. core config, HTTP block, server blocks) - however if
+*any* headers are set at a lower level, higher level headers will be ignored.
+
+I.e. If you set headers *a* and *b* in the HTTP block and then header *c* in a server block, only header *c* would be
+included in the final response.
+
+Because of this limitation, headers **MUST NOT** be set in server blocks, as numerous headers are set in the HTTP block
+which are needed to deliver features of this role (security headers for example).
+
+*This limitation is considered to be significant. Solutions will be actively pursued.*
+*Pull requests to address this will be gratefully considered and given priority.*
+
+See the [Nagios documentation](http://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header) for more 
+information on this issue.
+
+See [BARC-96](https://jira.ceh.ac.uk/browse/BARC-96) for further details.
+
+* Server block definition file templates provided by this role assume server blocks will be the 'default server'
+
+Nginx server blocks can declare they are the 'default server' for their respective listening port (e.g. default server 
+for port 80). Only one server block **SHOULD** declare this per listening port.
+
+The server block definition file templates provided this role (for all use-cases) hard-code this declaration, and do 
+not make it optional. This means where multiple server blocks are defined, which listen on the same port (i.e. you are
+using Host based server identification to support multiple servers on a single machine), the templates provided by this 
+role are unsuitable.
+
+To overcome this limitation either the templates provided by this role would need to be modified, or an alternative 
+method will need to be used to generate definition files.
+
+Though this is relatively simple limitation to fix within templates in this role, it is not a priority, as is BAS 
+projects, each project uses its own web-servers hosted behind a load balancer. Therefore only one server block (for each 
+particular project) is needed.
+
+*This limitation is **NOT** considered to be significant. Solutions will **NOT** be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See [BARC-97](https://jira.ceh.ac.uk/browse/BARC-97) for further details.
+
+* Server blocks named after distribution default server blocks (i.e. same file-name/location) cannot be used
+
+Specifically server blocks cannot be made at any of these paths:
+
+On *Ubuntu* machines:
+
+* `/etc/nginx/sites-available/default`
+
+On *CentOS* machines:
+
+* `/etc/nginx/conf.d/default.conf`
+* `/etc/nginx/conf.d/example-ssl.conf`
+
+*This limitation is **NOT** considered to be significant. Solutions will **NOT** be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See [BARC-91](https://jira.ceh.ac.uk/browse/BARC-91) for further details.
+
+* Manual tests are inelegant, requiring uncommenting sections in playbooks and Vagrant
+
+This role has a higher than average number of distinct test scenarios, mostly relating to the different types of 
+server blocks that are used. Each scenario carries a significant overhead as two virtual machines are needed, as well 
+as additional test machines in most circumstances. Running all of these virtual machines at once requires a significant
+amount of resources, which are typically unavailable.
+
+for this reason, commenting is used to prevent all virtual machines being built by Vagrant, the idea being when running
+a scenario the relevant VMs will be uncommented. This means the Ansible playbook and inventory need to be suitably 
+structured not to rely on all VMs always being available. This has lead to repetition of some tests for convenience.
+
+Ideally the number of scenarios this role supports would be reduced to a more typical number (2-3), however this is 
+unlikely. Therefore is considered an ongoing issue, but of low importance, since it only affects developers of this 
+role, not end-users.
+
+*This limitation is **NOT** considered to be significant. However solutions will be actively pursued.*
+*Pull requests to address this will be considered.*
+
+See [BARC-92](https://jira.ceh.ac.uk/browse/BARC-92) for further details.
 
 ## Usage
 
-### Requirements
+### Non-system packages
 
-#### BAS Ansible Role Collection (BARC)
+It is a convention of BARC roles to use the latest version of packages. Where a suitable non-system package source is 
+available it will be used. Suitable non-system packages require a reputable, maintainer, typically a company or well 
+respected individual. If this is for some reason unsuitable, it is possible to only use system packages by setting the 
+*BARC_use_non_system_package_sources* variable to `false`.
 
-* `core`
+Note: As the package policy varies between system and non-system package sources, and between operating systems, the 
+version of installed packages is variable.
 
-#### Other
+Note: In this role, there is no Nginx package available on CentOS without using non-system packages, see the 
+*Limitations* section for more information.
 
-If using SSL the certificate and private key used must be accessible on the server, then use the `nginx_default_var_www_ssl_cert` and `nginx_default_var_www_ssl_key` variables to point to this location. It is out of scope to do this in this role (as the certificate may be used in multiple web-servers).
+### Firewall configuration
 
-### Notes
+This role assumes the machine it is applied to is using a system firewall. By default this role will generate a firewall 
+service relevant to Nginx and automatically enable and persist this service to allow access to Nginx's services.
 
-The DH parameter files used by this role are taken from 18F's SSL configuration [here](https://github.com/fisma-ready/nginx/tree/master/ssl).
+Specifically:
+
+* On CentOS machines:
+    * A set of firewalld firewall services will be generated
+    * Each firewall service will contain rules for a single firewall scenario
+    * This service will be enabled persistently
+    * The firewall service is reloaded
+* On Ubuntu machines:
+    * A UFW firewall application will be generated (overriding the default firewall application for Nginx)
+    * This application contains rules for all firewall scenarios
+    * This application will be enabled
+    * The firewall service is reloaded
+
+Custom generated firewall services are used to ensure if custom listening ports are used (i.e. not ports 80/443) rules
+will reflect the ports that are used.
+
+Multiple firewall scenarios are available within this role:
+
+* *nginx-http*
+    * Enables HTTP connections only on the port set by the *nginx_firewall_port_http* variable
+* *nginx-https*
+    * Enables HTTPS connections only on the port set by the *nginx_firewall_port_https* variable
+* *nginx-http-https*
+    * Enables HTTP connections on the port set by the *nginx_firewall_port_http* variable
+    * Enables HTTPS connections only on the port set by the *nginx_firewall_port_https* variable
+
+This role will only enable one scenario, set by the *webserver_firewall_rule* variable. When setting this variable do
+not include the `nginx-` prefix (i.e. to use *nginx-http* set the *webserver_firewall_rule* variable to `http`).
+
+Following the principle of least privilege, the minimum number of firewall rules should be enabled. This means if you 
+are only using HTTP server blocks, for example, the *nginx-https* scenario **SHOULD** be used over the 
+*nginx-http-https* scenario. See the *Variables* section for the scenario enabled by default.
+
+If you do not want this role to manage the system firewall, or no system firewall is used, you **MUST** skip the 
+**BARC_CONFIGURE_FIREWALL** tag when using this role.
+
+Note: If you are using BAS maintained [operating system images](https://github.com/antarctica/packer-vm-templates) this
+configuration is fully supported and should be seamless. In other cases additional configuration may be needed depending
+on how the system firewall has been configured.
+
+### Nginx configuration files
+
+Nginx uses a single configuration file, `/etc/nginx/nginx.conf`, which controls core Nginx settings (such as the user 
+the web-server runs as), web-server features such as Gzip and server blocks (virtual hosts) along with all the various 
+options each of these sections can contain.
+
+To save having to specify all of these configuration in a single file, which would be hard to read, let alone manage 
+using provisioning tools, Nginx supports including additional files, within the main configuration file. These 
+additional files are essentially configuration fragments, just stored in separate files. At run time, Nginx will combine
+these fragments to create a complete configuration file.
+
+Note: Nginx will not detect changes to its main, or fragment configuration files once started. If changes are made, the
+Nginx service will need to be reloaded.
+
+Within this role, the use of includes and file fragments is used extensively and is strongly encouraged. Importantly 
+Nginx supports specifying *all* files at a given path should be included, rather than specifying each specifically by
+file-name. This means some feature can configure its own configuration options, it its own file, without needing to
+alter any other files to be included. This makes automatic provisioning significantly easier in terms of this main role
+not needing to be aware of any of its children (roles which configure specific features).
+
+The following directory structure is used for constructing the Nginx configuration file.
+
+```
+├── conf.d           <-- Contains Module and additional configuration files (directory)
+│   ├── http         <-- Contains Additional configuration files for the 'http' module (directory, example)
+│   │   ├── *.conf   <-- Additional configuration file
+│   └── *.conf       <-- Module configuration file
+└── nginx.conf.j2    <-- Main configuration file
+```
+
+Note: Sever blocks are also included in the main configuration, but are discussed in their own section later on.
+
+Note: Unlike Apache, Nginx does not support a concept similar to `.htaccess` files, everything must be included in the 
+main Nginx configuration file at some point.
+
+#### Main configuration file
+
+The main Nginx configuration file, `/etc/nginx/nginx.conf`, is purposely designed to be as minimal as possible. Other
+than defining process information, this file simply includes `*.conf` files within `/etc/nginx/conf.d/*.conf`, termed 
+*module* configuration files in this role.
+
+Additional configuration options **SHOULD NOT** be set in this file. Instead such options **SHOULD** be set within a 
+module configuration file, or an additional configuration file included by a module configuration file.
+
+#### Module configuration files
+
+Module configuration files are high level configuration options, usually specifying a main directive, such as 'http'.
+Each module consists of a single module block, such as (for the 'http' module):
+
+```
+http {
+    # Module configuration
+}
+```
+
+Typically there will only be a single module, 'http' with a configuration file '/etc/nginx/conf.d/http.conf'. Apart 
+from some basic configuration options, this file mainly loads additional configuration files within 
+`/etc/nginx/conf.d/http/*.conf` and server block definition files within `/etc/nginx/sites-enabled/*`.
+
+Additional configuration options for the 'http' module (and for other modules, except basic settings) **SHOULD NOT** be 
+set in module configuration files. Instead such options **SHOULD** be set within an additional configuration file.
+
+#### Additional configuration files
+
+Additional configuration files are lower level, feature specific, configuration options, usually focusing on a 
+particular, non-core, feature such as Gzip or TLS/SSL.
+
+Each feature **SHOULD** be contained in a separate file to allow easy management when using automated provisioning.
+This role includes a number of 'common' additional configuration files. Others may be added by additional roles.
+
+Additional files included in this role:
+
+* In the 'http' module:
+    * `logging.conf` - Enables access and error logging by default
+    * `tls.conf` - Sets defaults for TLS/SSL connections where used in server blocks
+    * `mime.conf` - Registers MIME types and sets a default
+    * `content.conf` - Sets default character encoding
+    * `gzip.conf` - Enables Gzip compression by default
+
+* In server block templates:
+    * `meta-files.conf` - Suppress logging unsuccessful requests for missing, non-critical, files such as favicons
+    * `static-caching` - Adds caching for various types of static content (images, CSS, JS, etc.)
+
+More information on these additional sections may be provided in other sub-sections in this README.
+
+Note: Server block definitions **SHOULD NOT** be specified as additional configuration files. Instead, all definition 
+files **SHOULD** be specified in `/etc/nginx/sites-available`, with 'enabled' server blocks symbolically linked to 
+`/etc/nginx/site-enabled`. Server block definitions are discussed in more detail in their own section later on.
+
+### Logging
+
+This role includes additional options to:
+
+* Define, explicitly, a 'default' logging format for access logs which is the same as the built-in 'combined' format
+* Define a logging filter to prevent successful requests being logged
+* Maintain an error log, which will log server errors of severity 'warning' and above
+* Maintain an access log, which will only log unsuccessful requests (i.e. 4XX/5XX errors)
+
+### MIME types
+
+This role includes additional options to set the list of know MIME types and set a default value.
+
+### TLS/SSL configuration
+
+This role includes additional options for improving the, security/robustness and efficiency of secure connections. 
+These additional options give an **A+** rating using Qualys SSL Labs SSL Server Test.
+
+Note: These additional options will apply to any server block which enables TLS/SSL support, unless directly overridden.
+
+Note: If you are BAS staff you **SHOULD NOT** opt-out of these additional options. Instead you should contact the Web & 
+Applications Team or BAS ICT to discuss your requirements.
+
+#### Custom DH parameters
+
+Part of the TLS/SSL hardening options used in this role include using custom DH parameters. This role uses DP 
+parameters generated by [18F](https://18f.gsa.gov/), 
+specifically [this file](https://github.com/fisma-ready/nginx/blob/master/ssl/dhparam2048.pem).
+
+More information on the implications this has can be found [here](http://security.stackexchange.com/a/43356).
+
+### TLS/SSL certificates
+
+Note: You **MUST** enable private key material is suitably protected. These ownership and permission settings are
+recommendations only. You **MUST** seek professional advice if you are unsure if you are adequately protecting private
+key material.
+
+Certificates, and their private keys, **SHOULD** be located in operating system specific conventional defaults:
+
+* On CentOS machines:
+    * Certificates will be stored in: `/etc/pki/tls/certs`
+    * Certificate private keys will be stored in: `/etc/pki/tls/private`
+* On Ubuntu machines:
+    * Certificates will be stored in: `/etc/ssl/certs`
+    * Certificate private keys will be stored in: `/etc/ssl/private`
+
+Certificates and private keys **SHOULD** be stored be owned by the root user with permissions of *(0)600*.
+
+Note: In future versions of this role, the location of certificates and private keys may be harmonised to the CentOS
+defaults.
+
+If you are BAS staff, and are using 'core' certificates (i.e. any certificate for the `bas.ac.uk` domain), you **MUST** 
+contact the Web & Applications Team or ICT to ensure you are following best practice. Otherwise you **SHOULD** seek 
+advice if you are at all unsure.
+
+Information Services provides 'core' certificates for the primary BAS domain `(www).bas.ac.uk` and sub-domains: 
+`*.web.bas.ac.uk`, `*.data.bas.ac.uk`, `api.bas.ac.uk`, etc. This, and certificates for other domains are maintained by 
+the Web & Applications Team. See the 
+[BAS Certificate Store](https://stash.ceh.ac.uk/projects/BASWEB/repos/porcupine/browse) project for more information 
+and instructions for using these 'core' certificates.
+
+For other domains, please contact the Web & Applications Team or BAS ICT to discuss your requirements, as there are 
+NERC guidelines applicable to purchasing certificates.
+
+### Security headers
+
+This role includes additional options improving security in terms of how resources from this server can be used.
+See `templates/etc/nginx/conf.d/http/security.conf.j2` for more information.
+
+### Default character encoding
+
+This role includes additional options for setting `utf-8` as the default character encoding.
+
+### Gzip
+
+This role includes additional options for configuring Gzip compression.
+
+The range of mime types to be compressed are set by the *webserver_config_gzip_types* variable. Other basic options are
+set in the included configuration file.
+
+Note: Small files will not be Gzipped as the size saving is negligible and a waste of server resources.
+
+Note: As 'chunked' transfer encoding is used for Gzipped content no 'content-length' header will be set.
+
+Note: Image formats are intentionally excluded from Gzip compression as these formats **SHOULD** be compressed already,
+in many cases applying Gzip to an already compressed file will only increase the file size.
+
+#### Gzip with TLS
+
+Due to known vulnerabilities [1] with combining Gzip with TLS, this role disables Gzip in included secure server block 
+templates. This is a precautionary measure and may not be sufficiently concerning in all situations, compared to the 
+missed benefits Gzip brings.
+
+It is therefore your decision whether to use Gzip with TLS, however you should ensure you are fully aware of the 
+consequences in doing so. If you wish to do so, set the `nginx_server_blocks_tls_enable_gzip` variable to `"on"`.
+
+If you are BAS staff, contact the Web & Applications Team or BAS ICT to discuss your requirements.
+
+[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=773332
+
+### Server Blocks (Virtual Hosts)
+
+Server blocks, known generically as Virtual Hosts in Apache, specify 'servers' which will listen on a set of ports and 
+process requests. Server blocks can be named, if multiple websites are hosted on a single machine. Less commonly, 
+different ports can be used for each 'server' to avoid using names.
+
+Each server block can perform a variety of roles, for example serving a static website, dynamic content using a CGI 
+proxy, or reverse proxying requests to another application, such as Tomcat. Features such as authentication, caching 
+and resource pooling can be used alongside any of these roles as needed.
+
+Each 'server' consists of a server block, which is simply:
+
+```
+server {
+    # Server configuration
+}
+```
+
+Each server block **SHOULD** be specified in its own file in `/etc/nginx/sites-available/`. Server blocks which should 
+be used **MUST** be symbolically linked to `/etc/nginx/sites-enabled/`. Requiring this extra step allows easy control 
+over which servers are used, without having to comment out definitions files or moving definition files elsewhere.
+
+You **SHOULD** read these resources if you are using 'custom' server blocks:
+
+* [Common pitfalls](https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/) to avoid common 
+mistakes
+* [Nginx directly](https://www.nginx.com/resources/wiki/start/) for pre-written samples for a range of use-cases 
+
+Note: This role does not manage server block definitions directly. Templates, discussed later, for generating common 
+server blocks are provided by this role, but tasks to generate them and manage document roots, certificates, etc. need 
+to be implemented outside of this role.
+
+Note: Server block definition files **MUST NOT** use a file extension or they won't be included in the Nginx 
+configuration file, even when enabled.
+
+Note: Server block definitions **MUST NOT** set headers as this will 'cancel out' headers set by other parts of the 
+Nginx configuration, see the *limitations* section for more information.
+
+Note: Don't name definition files with any of these, exact, names as this role will remove them (these are default 
+definitions installed by Nginx, but which when enabled, may cause conflicts):
+
+On *Ubuntu* machines:
+
+* `/etc/nginx/sites-available/default`
+
+On *CentOS* machines:
+
+* `/etc/nginx/conf.d/default.conf`
+* `/etc/nginx/conf.d/example-ssl.conf`
+
+See the *limitations* section for more information.
+
+#### Server block templates
+
+Despite the wide range of possible roles for 'servers', typically roles are not that unique. This role therefore 
+provides a set of Ansible templates for generating server blocks for these common roles.
+
+Note: Remember this role does not directly manage server blocks, it simply provides templates for use in external tasks.
+
+These templates purposely do not cater to every role and use-case, there are simply too many. Therefore it is expected
+server blocks, not based on templates from this role, will be used as needed. This role will therefore not interfere
+with server blocks, regardless of whether they are based on templates from this role or not.
+
+Templates provided by this role are located in `templates/etc/nginx/sites-available/`, examples of using them are shown 
+in the *Typical Playbook* sub-section. A summary is provided in each template, though it should be fairly obvious what 
+is happening by reading each file.
+
+Server block templates are configured to include relevant additional configuration files, see the *Additional 
+configuration files* sub-section for more information.
+
+#### Document root
+
+Document roots should be accessible to the web-server group (`www-data` on Ubuntu machines, `nginx` on CentOS), with
+permissions *(0)775* (recursive) recommended for directories and *(0)664* for files.
+
+Note: Depending on your use case these recommended permissions may not be suitable. If in doubt use common sense when
+setting permissions. If you are handling any sensitive information, and you are BAS staff, contact the Web & 
+Applications Team or ICT for additional guidance.
+
+Note: If using server-block templates from this role, ensure the document root exists and has the correct permissions 
+and ownership before generating the template.
+
+#### TLS certificates
+
+See the *Typical playbook* section for examples of tasks to do this.
+
+Note: If using server-block templates from this role, ensure any certificates and private keys have been uploaded to 
+the machine with the correct permissions and ownership. See the *TLS/SSL certificates* sub-section for more information.
+
+#### Meta files
+
+Some clients, mostly web-browsers, will make requests for a conventional, meta, files such as `favicon` or `robots.txt`.
+This role includes an additional configuration file, `server-blocks/meta-files.conf`, to suppress logging unsuccessful 
+requests for these files where they are missing.
+
+See `templates/etc/nginx/conf.d/server-blocks/meta-files.conf.j2` in this role for a list of meta files covered.
+
+Note: This additional configuration does not prevent these meta files being used, it simply ignores errors where they
+don't.
+
+Note: If using server-block templates from this role, this additional configuration file will be included automatically.
+To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can
+include this additional configuration file directly if desired.
+
+#### Static caching
+
+This role includes additional options for configuring the caching of static content.
+
+This includes: images, audio, video, web-fonts RSS feeds, CSS and JS. Various cache times are used for each media type.
+
+Known dynamic content is explicitly excluded from caching, this includes: HTML, XML and JSON. You can adjust this if
+needed, or perform caching at a lower or higher level (within applications, or using a caching layer, respectively).
+
+Note: By default CSS and JS will be cached for 1 year. 'Cache-busting' will therefore be needed if CSS/JS are expected
+to change during this time. Various build tools and frameworks can automate this process if needed.
+
+Note: If using server-block templates from this role, this additional configuration file will be included automatically.
+To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can
+include this additional configuration file directly if desired.
+
+##### ETags
+
+Nginx will by default set ETags for content it serves, meaning, in most cases, changes to files will automatically
+invalidate caching. This means techniques such as 'cache-busting' should not be needed.
+
+For example, you have a 'main.css' file with a cache time of 1 year. A client requests this file on 01/01/2010 and you 
+then update the file on 04/04/2010. The client conditionally requests the file again on 06/06/2010, passing the ETag of
+the file it has previously cached. As the file has since been changed the ETags do not match and the updated file is 
+returned, instead of a '304 Not Changed' response. This updated file is then cached as normal and used until the ETag 
+changes again, or the cache period is exceeded.
+
+### Typical playbook
+
+```yaml
+---
+
+# Playbook for a non-secure web-server
+# I.e. for an app server sitting behind a load balancer performing TLS/SSL termination
+- name: setup nginx web-server and server block for application
+  hosts: all
+  become: yes
+  vars:
+    webserver_virtual_hosts_document_root: /app/public
+  roles:
+    - BARC.nginx
+  tasks:
+    - name: generate server block definition files
+      template:
+         src="roles/nginx/templates/etc/nginx/sites-available/server-http.j2"
+        dest="/etc/nginx/sites-available/app-http"
+    - name: enable server block definition files
+      file:
+          src="/etc/nginx/sites-available/app-http"
+         dest="/etc/nginx/sites-enabled/app-http"
+        state=link
+      notify: Restart Nginx
+    handlers:
+      - include: roles/nginx/handlers/main.yml
+
+# Playbook for a secure web-server
+# I.e. for a standalone server exposed directly to the public internet
+# Real certificates would obviously normally be used
+- name: setup nginx web-server and secure server block for application
+  hosts: all
+  become: yes
+  vars:
+    webserver_virtual_hosts_document_root: /app/public
+    webserver_virtual_hosts_tls_certificate_file: tls-cert-snakeoil.crt
+    webserver_virtual_hosts_tls_key_file: tls-cert-snakeoil.key
+  roles:
+    - BARC.nginx
+  tasks:
+    - name: copy and secure snake-oil certificate file and key for testing
+      copy:
+        src="{{ item.source }}"
+        dest="{{ item.dest }}"
+        mode=0600
+      with_items:
+        -
+          source: certificates/snakeoil/tls-cert-snakeoil.crt
+          dest: "{{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+        -
+          source: certificates/snakeoil/tls-cert-snakeoil.key
+          dest: "{{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_key_file }}"
+    - name: generate server block definition files
+      template:
+         src="roles/nginx/templates/etc/nginx/sites-available/{{ item.src }}.j2"
+        dest="/etc/nginx/sites-available/{{ item.dest }}"
+      with_items:
+        -
+          src: server-block-http-to-https
+          dest: app-http-redirect
+        -
+          src: server-block-https
+          dest: app-https
+    - name: enable server block definition files
+      file:
+          src="/etc/nginx/sites-available/{{ item }}"
+         dest="/etc/nginx/sites-enabled/{{ item }}"
+        state=link
+      with_items:
+        - app-http-redirect
+        - app-https
+      notify: Restart Nginx
+    handlers:
+      - include: roles/nginx/handlers/main.yml
+```
+
+### Tags
+
+BARC roles use standardised tags to control which aspects of an environment are changed by roles. Where relevant, tags
+will be applied at a role, or task(s) level, as indicated below.
+
+This role uses the following tags, for various tasks:
+
+* [**BARC_CONFIGURE**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE)
+* [**BARC_CONFIGURE_PACKAGE**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE_PACKAGE)
+* [**BARC_CONFIGURE_FIREWALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE_FIREWALL)
+* [**BARC_INSTALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL)
+* [**BARC_INSTALL_PACKAGES**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL_PACKAGE)
 
 ### Variables
 
-Variables used in default virtual host `/etc/nginx/sites-available/default`:
+#### *BARC_use_non_system_package_sources*
 
-* `nginx_app_user_username`
-    * The username of the app user, used for day to day tasks, if enabled
-    * This variable **must** be a valid unix username
-    * Default: "app"
-* `nginx_default_var_www_server_binding`
-    * The networking interface Nginx will listen for connections on
-    * By default this variable listens on any IPv4 interface.
-    * Default: "0.0.0.0"
-* `nginx_default_var_www_server_http_port`
-    * The port on which Nginx will listen for HTTP connections
-    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
-    * Default: "80"
-* `nginx_default_var_www_server_https_port`
-    * The port on which Nginx will listen for HTTPS connections
-    * By default this variable uses port 80, this is a convention and **SHOULD NOT** be changed.
-    * Default: "443"
-* `nginx_default_var_www_document_root`
-	* Location on server containing site files. 
-	* If a non-default root is used ensure the `www-data` group has access.
-    * Default: "/var/www/"
-* `nginx_default_var_www_ssl_enabled`
-    * Boolean value for enabling SSL support 
-    * Default: "false"
-* `nginx_default_var_www_ssl_cert_path`
-    * Path, without a trailing slash, to the directory holding the SSL certificate 
-    * Default: "/app/provisioning/certificates/domain"
-* `nginx_default_var_www_ssl_cert_file`
-    * File name (including extension) of SSL certificate in `nginx_default_var_www_ssl_cert_path`
-    * The certificate file this variable points to **SHOULD** contain a complete SSL trust chain.
-    * Default: "certificate-including-trust-chain.crt"
-* `nginx_default_var_www_ssl_key_path`
-    * Path, without a trailing slash, to the directory holding the SSL private key 
-    * Default: "/etc/ssl/private"
-* `nginx_default_var_www_ssl_key_file`
-    * File name (including extension) of SSL private key in `nginx_default_var_www_ssl_key_path`
-    * Default: "cert.key"
+* **MAY** be specified
+* Specifies whether non-system sources can be used to install packages
+* Note: This variable is scoped to all other BARC roles which install packages from non-system sources
+* Values MUST use one of these options, as determined by Ansible:
+    * `true`
+    * `false`
+* Values **SHOULD NOT** be quoted to prevent Ansible coercing values to a string
+* Where not specified, a value of `true` will be assumed
+* Default: `true`
 
-## Contributing
+#### *os_tls_certificates_path*
 
-This project welcomes contributions, see `CONTRIBUTING` for our general policy.
+* **MAY** be specified
+* Species the path to the directory used for containing TLS certificate files, as determined by the operating system
+* Values **MUST** be a valid system path, as determined by the operating system
+* Values **MUST NOT** include a trailing slash (`/`)
+* Values **MUST** use absolute paths
+* The default value, which varies depending on the machine operating system, is a conventional default, other values 
+**SHOULD NOT** be used without good reason
+* The default value for this variable is set as a role variable, rather than a role default variable, this has 
+implications if overriding this value, see the *Limitations* section for more information
+* Default:
+    * `/etc/pki/tls/certs` - CentOS
+    * `/etc/ssl/certs` - Ubuntu
+
+### *os_tls_keys_path*
+
+* **MAY** be specified
+* Species the path to the directory used for containing TLS certificate private key files, as determined by the 
+operating system
+* Values **MUST** be a valid system path, as determined by the operating system
+* Values **MUST NOT** include a trailing slash (`/`)
+* Values **MUST** use absolute paths
+* The default value, which varies depending on the machine operating system, is a conventional default, other values 
+**SHOULD NOT** be used without good reason
+* The default value for this variable is set as a role variable, rather than a role default variable, this has 
+implications if overriding this value, see the *Limitations* section for more information
+* Default:
+    * `/etc/pki/tls/private` - CentOS
+    * `/etc/ssl/private` - Ubuntu
+
+#### *webserver_listening_port_http*
+
+* **MAY** be specified
+* Specifies the port on which web-servers will listen for non-secure (HTTP) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* The default value, `80`, is a conventional default, other values **SHOULD NOT** be used without good reason
+* Default: `80`
+
+#### *webserver_listening_port_https*
+
+* **MAY** be specified
+* Specifies the port on which web-servers will listen for secure (HTTPS) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* The default value, `443`, is a conventional default, other values **SHOULD NOT** be used without good reason
+* Default: `443`
+
+#### *webserver_firewall_rule*
+
+* **SHOULD** be specified
+* Specifies the name of the firewall rule to be enabled to allow access to web-server services
+* See the *Firewall configuration* section for more information on how to set this variable
+* Values **MUST** be a valid system firewall service, as determined by the operating system firewall
+* Default: `http-https`
+
+### *webserver_config_gzip_types*
+
+* **MAY** be specified
+* Specifies a list of MIME types Gzip compression will be applied to
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid MIME types, as determined by the web server
+* Defaults:
+```
+- text/plain
+- text/css
+- text/xml
+- application/xml
+- application/xml+rss
+- application/rss+xml
+- text/javascript
+- application/x-javascript
+```
+
+#### *webserver_virtual_hosts_listening_port_http*
+
+* **MAY** be specified
+* Specifies the port on which virtual hosts will listen for non-secure (HTTP) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* Values **MUST** be unique for each virtual host where the value of *webserver_virtual_hosts_server_name* is 
+the same
+* By default, the value of this variable is inherited from the *webserver_listening_port_http* variable
+* The fallback value, `80`, is a conventional default, it will be used where this variable is not defined
+* Default: `{{ webserver_listening_port_http | default('80') }}`
+
+#### *webserver_virtual_hosts_listening_port_https*
+
+* **MAY** be specified
+* Specifies the port on which virtual hosts will listen for secure (HTTPS) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* Values **MUST** be unique for each virtual host where the value of *webserver_virtual_hosts_server_name* is 
+the same
+* By default, the value of this variable is inherited from the *webserver_listening_port_https* variable
+* The fallback value, `443`, is a conventional default, it will be used where this variable is not defined
+* Default: `{{ webserver_listening_port_https | default('443') }}`
+
+#### *webserver_virtual_hosts_server_name*
+
+* **MAY** be specified where the value is suitably generic, otherwise this **SHOULD NOT** be specified
+* This variable is undefined (commented out) by default to allow implementation specific defaults to be used, however
+if the value for the *nginx_server_blocks_server_name* variable is a universal value, this variable should be defined 
+(uncommented) will be used automatically instead
+* Specifies the logical name of each virtual host
+* Values **MUST** be valid virtual host server names, as determined by the web server
+* Values **MUST** be unique for each server block where the values of 
+*webserver_virtual_hosts_listening_port_http* and *webserver_virtual_hosts_listening_port_https* are the 
+same
+* Default: #`` - Undefined variable, with an empty string as its value if defined
+
+#### *webserver_virtual_hosts_document_root*
+
+* **MAY** be specified
+* Specifies the logical root of the virtual host
+* Values **MUST** be a valid system path, as determined by the web server
+* Values **MUST NOT** include a trailing slash (`/`)
+* Values **SHOULD** use absolute paths to avoid confusion
+* The default value, `/var/www/html`, is a conventional default, other values **SHOULD NOT** be used without good reason
+* Default: `/var/www/html`
+
+#### *webserver_virtual_hosts_document_indexes*
+
+* **MAY** be specified
+* Specifies a list of files that will be used as an index document
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid file names, including any file extension, as determined by the web server
+* The default item values, are conventional defaults, other values **SHOULD NOT** be used without good reason
+* Defaults:
+```
+- index.html
+```
+
+#### *webserver_virtual_hosts_tls_certificate_path*
+
+* **MAY** be specified
+* Specifies the path to the directory containing the certificate file set by the 
+*webserver_virtual_hosts_tls_certificate_file* variable
+* Values **MUST** be a valid system path, as determined by the web server
+* Values **MUST NOT** include a trailing slash (`/`)
+* By default, the value of this variable is inherited from the *os_tls_certificates_path* variable
+* Default: `{{ os_tls_certificates_path }}`
+
+#### *webserver_virtual_hosts_tls_certificate_file*
+
+* **MAY** be specified
+* Specifies the file name of the certificate in the directory set by the 
+*webserver_virtual_hosts_tls_certificate_path* variable
+* Values **MUST** be a valid system file, including any file extension, as determined by the web server
+* Default: `cert.crt`
+
+#### *webserver_virtual_hosts_tls_key_path*
+
+* **MAY** be specified
+* Specifies the path to the directory containing the certificate private key file set by the 
+*webserver_virtual_hosts_tls_key_file* variable
+* Values **MUST** be a valid system path, as determined by the web server
+* Values **MUST NOT** include a trailing slash (`/`)
+* By default, the value of this variable is inherited from the *tls_keys_path* variable
+* Default: `{{ tls_keys_path }}`
+
+#### *webserver_virtual_hosts_tls_key_file*
+
+* **MAY** be specified
+* Specifies the file name of the certificate private key in the directory set by the 
+*webserver_virtual_hosts_tls_key_path* variable
+* Values **MUST** be a valid system file, including any file extension, as determined by the web server
+* Default: `cert.key`
+
+#### *nginx_config_core_pid*
+
+* **MAY** be specified
+* Species the file in which the Nginx process id will be stored
+* See [Nginx documentation](http://nginx.org/en/docs/ngx_core_module.html#pid) for more information
+* Values **MUST** be a valid system path and file, including any file extension, as determined by Nginx
+* Values **MUST** use absolute paths
+* The default value, which varies depending on the machine operating system, is a conventional default, other values 
+**SHOULD NOT** be used without good reason
+* The default value for this variable is set as a role variable, rather than a role default variable, this has 
+implications if overriding this value, see the *Limitations* section for more information
+* Default:
+    * `/var/run/nginx.pid` - CentOS
+    * `/run/nginx.pid` - Ubuntu
+
+### *nginx_config_core_user*
+
+* **MAY** be specified
+* Species the operating system Nginx will run as
+* See [Nginx documentation](http://nginx.org/en/docs/ngx_core_module.html#user) for more information
+* Values **MUST** correspond with a valid system user, as determined by the operating system
+* The default value, which varies depending on the machine operating system, is a conventional default, other values 
+**SHOULD NOT** be used without good reason
+* The default value for this variable is set as a role variable, rather than a role default variable, this has 
+implications if overriding this value, see the *Limitations* section for more information
+* Default:
+    * `nginx` - CentOS
+    * `www-data` - Ubuntu
+
+#### *nginx_firewall_port_http*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the port on which Nginx will listen for non-secure (HTTP) requests, used for generating firewall rules
+* Values **MUST** be a valid system port, as determined by the operating system
+* By default, the value of this variable is inherited from the *webserver_listening_port_http* variable
+* Default: `{{ webserver_listening_port_http }}`
+
+#### *nginx_firewall_port_https*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the port on which Nginx will listen for secure (HTTPS) requests, used for generating firewall rules
+* Values **MUST** be a valid system port, as determined by the operating system
+* By default, the value of this variable is inherited from the *webserver_listening_port_https* variable
+* Default: `{{ webserver_listening_port_https }}`
+
+#### *nginx_firewall_rule*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the name of the firewall rule to be enabled to allow access to Nginx's services
+* See the *Firewall configuration* section for more information on how to set this variable
+* Values **MUST** be a valid system firewall service, as determined by the operating system firewall
+* By default, the value of this variable is partially inherited from the *webserver_firewall_rule* variable
+* Default: `nginx-{{ webserver_firewall_rule }}`
+
+#### *nginx_config_gzip_enable_gzip*
+
+* **MAY** be specified
+* Specifies whether Gzip compression should be applied to responses
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip) for more information
+* Values **MUST** use one of these options, as determined by Nginx:
+  * `on`
+  * `off`
+* Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
+* Default: `on`
+
+### *nginx_config_gzip_types*
+
+* **MAY** be specified
+* Specifies a list of MIME types Gzip compression will be applied to
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid MIME types, as determined by Nginx
+* By default, the value of this variable is inherited from the *webserver_config_gzip_types* variable
+* Default: `{{ webserver_config_gzip_types }}`
+
+#### *nginx_server_blocks_listening_port_http*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the port on which server blocks will listen for non-secure (HTTP) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* Values **MUST** be unique for each server block where the value of *nginx_server_blocks_server_name* is the 
+same
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_listening_port_http* variable
+* Default: `{{ webserver_virtual_hosts_listening_port_http }}`
+
+#### *nginx_server_blocks_listening_port_https*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the port on which server blocks will listen for secure (HTTPS) requests
+* Values **MUST** be a valid system port, as determined by the operating system
+* Values **MUST** be unique for each server block where the value of *nginx_server_blocks_server_name* is the 
+same
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_listening_port_https* variable
+* Default: `{{ webserver_virtual_hosts_listening_port_https }}`
+
+#### *nginx_server_blocks_server_name*
+
+* **MAY** be specified where the value for the related generic variable is unsuitable, otherwise this **SHOULD NOT** be 
+specified
+* This variable's generic counterpart, *webserver_virtual_hosts_server_name*, is undefined (commented out) by default 
+to allow implementation specific defaults (this variable) to be used, however if the value for this variable is a 
+universal value, the generic variable should be defined (uncommented) and will be used automatically instead 
+* Specifies the logical name of the server block
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_core_module.html#server_name) for more information
+* Values **MUST** be valid server block server names, as determined by Nginx
+* Values **MUST** be unique for each server block where the values of *nginx_server_blocks_listening_port_http* 
+and *nginx_server_blocks_listening_port_https* are the same
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_server_name* variable
+* The fallback value, `_`, will be used where this variable is not defined
+* Default: `{{ webserver_virtual_hosts_server_name | default('_') }}`
+
+#### *nginx_server_blocks_root*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the logical root of the server block
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_core_module.html#root) for more information
+* Values **MUST** be a valid system path, as determined by Nginx
+* Values **MUST NOT** include a trailing slash (`/`)
+* Values **MUST** use absolute paths
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_document_root* variable
+* Default: `{{ webserver_virtual_hosts_document_root }}`
+
+#### *nginx_server_blocks_indexes*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies a list of files that will be used as an index document
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_index_module.html) for more information
+* Structured as a list of items, with each item having the following properties:
+    * Item values **MUST** be valid file names, including any extension, as determined by Nginx
+* By default, the values of this variable are inherited from the *webserver_virtual_hosts_document_indexes* variable
+* Default: `{{ webserver_virtual_hosts_document_indexes }}`
+
+#### *nginx_server_blocks_tls_certificate_path*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the path to the directory containing the certificate file set by the 
+*nginx_server_blocks_tls_certificate_file* variable
+* Values **MUST** be a valid system path, as determined by Nginx
+* Values **MUST NOT** include a trailing slash (`/`)
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_tls_certificate_path* variable
+* Default: `{{ webserver_virtual_hosts_tls_certificate_path }}`
+
+#### *nginx_server_blocks_tls_certificate_file*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the file name of the certificate in the directory set by the 
+*nginx_server_blocks_tls_certificate_path* variable
+* Values **MUST** be a valid system file, including any file extension, as determined by Nginx
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_tls_certificate_file* variable
+* Default: `{{ webserver_virtual_hosts_tls_certificate_file }}`
+
+#### *nginx_server_blocks_tls_key_path*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the path to the directory containing the certificate private key file set by the 
+*nginx_server_blocks_tls_key_file* variable
+* Values **MUST** be a valid system path, as determined by Nginx
+* Values **MUST NOT** include a trailing slash (`/`)
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_tls_key_path* variable
+* Default: `{{ webserver_virtual_hosts_tls_key_path }}`
+
+#### *nginx_server_blocks_tls_key_file*
+
+* **MAY** be specified where the related generic variable is unsuitable, otherwise this **SHOULD NOT** be specified
+* Specifies the file name of the certificate private key in the directory set by the 
+*nginx_server_blocks_tls_key_path* variable
+* Values **MUST** be a valid system file, including any file extension, as determined by Nginx
+* By default, the value of this variable is inherited from the *webserver_virtual_hosts_tls_key_file* variable
+* Default: `{{ webserver_virtual_hosts_tls_key_file }}`
+
+#### *nginx_server_blocks_tls_enable_gzip*
+
+* **MAY** be specified
+* Specifies whether Gzip compression is enabled using TLS
+* See [Nginx documentation](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip) for more information
+* There are specific concerns when using TLS with Gzip, see the *Gzip with TLS* sub-section for more information
+* Values **MUST** use one of these options, as determined by Nginx:
+  * `on`
+  * `off`
+* Values **MUST** be quoted to prevent Ansible coercing values to True/False which is invalid for this variable
+* Default: `off`
 
 ## Developing
 
-### Committing changes
-
-The [Git flow](atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) workflow is used to manage development of this package.
-
-Discrete changes should be made within *feature* branches, created from and merged back into *develop* (where small one-line changes may be made directly).
-
-When ready to release a set of features/changes create a *release* branch from *develop*, update documentation as required and merge into *master* with a tagged, [semantic version](http://semver.org/) (e.g. `v1.2.3`).
-
-After releases the *master* branch should be merged with *develop* to restart the process. High impact bugs can be addressed in *hotfix* branches, created from and merged into *master* directly (and then into *develop*).
-
 ### Issue tracking
 
-Issues, bugs, improvements, questions, suggestions and other tasks related to this package are managed through the BAS Web & Applications Team Jira project ([BASWEB](https://jira.ceh.ac.uk/browse/BASWEB)).
+Issues, bugs, improvements, questions, suggestions and other tasks related to this package are managed through the 
+[BAS Ansible Role Collection](https://jira.ceh.ac.uk/projects/BARC) (BARC) project on Jira.
+
+This service is currently only available to BAS or NERC staff, although external collaborators can be added on request.
+See our contributing policy for more information.
+
+### Source code
+
+All changes should be committed, via pull request, to the canonical repository, which for this project is:
+
+`ssh://git@stash.ceh.ac.uk:7999/barc/nginx.git`
+
+A mirror of this repository is maintained on GitHub. Changes are automatically pushed from the canonical repository to
+this mirror, in a one-way process.
+
+`git@github.com:antarctica/ansible-nginx.git`
+
+Note: The canonical repository is only accessible within the NERC firewall. External collaborators, please make pull 
+requests against the mirrored GitHub repository and these will be merged as appropriate.
+
+### Contributing policy
+
+This project welcomes contributions, see `CONTRIBUTING.md` for our general policy.
+
+The [Git flow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/) 
+workflow is used to manage the development of this project:
+
+* Discrete changes should be made within feature branches, created from and merged back into develop 
+(where small changes may be made directly)
+* When ready to release a set of features/changes, create a release branch from develop, update documentation as 
+required and merge into master with a tagged, semantic version (e.g. v1.2.3)
+* After each release, the master branch should be merged with develop to restart the process
+* High impact bugs can be addressed in hotfix branches, created from and merged into master (then develop) directly
 
 ## License
 
-Copyright 2015 NERC BAS. Licensed under the MIT license, see `LICENSE` for details.
+Copyright 2015 NERC BAS.
+
+Unless stated otherwise, all documentation is licensed under the Open Government License - version 3. All code is
+licensed under the MIT license.
+
+Copies of these licenses are included within this role.

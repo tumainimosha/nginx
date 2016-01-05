@@ -1,0 +1,87 @@
+---
+# Manages a Lets Encrypt certificate with ACME Tiny and renew certificates that are due to expire soon
+
+- name: determine if certificate will expire in the next 24 hours
+  command: "openssl x509 -checkend 86400 -noout -in {{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+  ignore_errors: True
+  changed_when: False
+  register: tls_certificate_still_valid
+
+- name: download acme-tiny to renew certificate using lets encrypt
+  get_url:
+    url=https://raw.githubusercontent.com/diafygi/acme-tiny/master/acme_tiny.py
+    dest=~/acme_tiny.py
+    mode=775
+  when: tls_certificate_still_valid | failed
+- name: download lets encrypt intermediate certificate for chaining renewed certificate
+  get_url:
+    url=https://letsencrypt.org/certs/lets-encrypt-x1-cross-signed.pem
+    dest=~/certificate-chain.crt
+  when: tls_certificate_still_valid | failed
+- name: copy lets encrypt account private key to renew certificate
+  copy:
+    src="{{ lets_encrypt_account_key }}"
+    dest=~/account.key
+    mode=600
+  when: tls_certificate_still_valid | failed
+- name: copy certificate signing request to renew certificate
+  copy:
+    src=certificates/ssl-test.magiclantern.xyz/ssl-test.magiclantern.xyz.csr
+    dest="~/{{ lets_encrypt_csr }}"
+  when: tls_certificate_still_valid | failed
+
+- name: ensure directory exists for acme challenges and has correct owner and permissions
+  file:
+     path="/var/www/challenges"
+    owner="{{ nginx_config_core_user }}"
+    group="{{ nginx_config_core_user }}"
+     mode=0775
+    state=directory
+  when: tls_certificate_still_valid | failed
+- name: generate http server block definition file to respond to acme challenges
+  template:
+     src=templates/etc/nginx/sites-available/server-block-acme-challenge.j2
+    dest=/etc/nginx/sites-available/acme-challenge
+  when: tls_certificate_still_valid | failed
+- name: remove all enabled server blocks to prevent conflicts whist renewing certificate
+  shell: rm -f /etc/nginx/sites-enabled/*
+  when: tls_certificate_still_valid | failed
+- name: enable http server block to respond to acme challenges
+  file:
+      src=/etc/nginx/sites-available/acme-challenge
+     dest=/etc/nginx/sites-enabled/acme-challenge
+    state=link
+  notify: Restart Nginx
+  when: tls_certificate_still_valid | failed
+- meta: flush_handlers
+  when: tls_certificate_still_valid | failed
+
+- name: renew certificate using acme-tiny
+  shell: "python ~/acme_tiny.py --account-key ~/account.key --csr ~/{{ lets_encrypt_csr }} --acme-dir /var/www/challenges/ > ~/signed.crt"
+  when: tls_certificate_still_valid | failed
+- name: generate chained certificate and replace expired certificate
+  shell: "cat ~/signed.crt ~/certificate-chain.crt > {{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+  when: tls_certificate_still_valid | failed
+- name: download chained certificate for future provisioning runs
+  fetch:
+     src="{{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+    dest=certificates/ssl-test.magiclantern.xyz/
+    flat=yes
+  when: tls_certificate_still_valid | failed
+
+- name: clean up un-needed directories and server block
+  file:
+    path="{{ item }}"
+    state=absent
+  with_items:
+    - ~/acme_tiny.py
+    - ~/account.key
+    - ~/signed.crt
+    - ~/certificate-chain.crt
+    - "~/{{ lets_encrypt_csr }}"
+    - /etc/nginx/sites-enabled/acme-challenge
+    - /etc/nginx/sites-available/acme-challenge
+    - /var/www/challenges
+  notify: Restart Nginx
+  when: tls_certificate_still_valid | failed
+- meta: flush_handlers

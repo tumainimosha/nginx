@@ -1,0 +1,29 @@
+---
+# Checks the Nginx package is correctly installed
+
+- name: determine if nginx package is installed - CentOS
+  command: rpm -qa
+  when: ansible_distribution == "CentOS"
+  changed_when: False
+  register: nginx_test_fact_nginx_package_is_installed
+- name: assert nginx package is installed
+  assert:
+    that:
+      - "'nginx' in nginx_test_fact_nginx_package_is_installed.stdout"
+  when: ansible_distribution == "CentOS"
+
+- name: determine if nginx package is installed - Ubuntu
+  command: dpkg -s nginx
+  when: ansible_distribution == "Ubuntu"
+  changed_when: False
+  register: nginx_test_fact_nginx_package_is_installed
+- name: assert nginx package is installed
+  assert:
+    that:
+      - "'install ok installed' in nginx_test_fact_nginx_package_is_installed.stdout"
+  when: ansible_distribution == "Ubuntu"
+
+- name: determine if nginx is available
+  command: nginx -v
+  changed_when: False
+  register: nginx_test_fact_nginx_is_available

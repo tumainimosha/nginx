@@ -1,0 +1,47 @@
+---
+# Creates a https server block for use when testing
+
+- name: copy and secure snake-oil certificate file and key for testing
+  copy:
+    src="{{ item.source }}"
+    dest="{{ item.dest }}"
+    mode=0600
+  with_items:
+    -
+      source: certificates/snakeoil/tls-cert-snakeoil.crt
+      dest: "{{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+    -
+      source: certificates/snakeoil/tls-cert-snakeoil.key
+      dest: "{{ webserver_virtual_hosts_tls_key_path }}/{{ webserver_virtual_hosts_tls_key_file }}"
+
+- name: ensure document root directory exists and has correct owner and permissions
+  file:
+     path="{{ webserver_virtual_hosts_document_root }}"
+    owner="{{ nginx_config_core_user }}"
+    group="{{ nginx_config_core_user }}"
+     mode=0775
+    state=directory
+
+- name: ensure document root files exist and have correct owner and permissions
+  copy:
+      src="data/var/www/html/{{ item }}"
+     dest="{{ webserver_virtual_hosts_document_root }}/{{ item }}"
+    owner="{{ nginx_config_core_user }}"
+    group="{{ nginx_config_core_user }}"
+     mode=0664
+  with_items:
+    - index.html
+    - normalise.css
+    - fluffy.jpg
+
+- name: generate https server block definition file
+  template:
+     src=../../templates/etc/nginx/sites-available/server-block-https.j2
+    dest=/etc/nginx/sites-available/test-https
+
+- name: enable https server block
+  file:
+      src=/etc/nginx/sites-available/test-https
+     dest=/etc/nginx/sites-enabled/test-https
+    state=link
+  notify: Restart Nginx

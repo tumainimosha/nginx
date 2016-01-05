@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+
+# Additional configuration file - Security hardening defaults
+#
+# Options in this file are based on:
+# * https://github.com/fisma-ready/nginx/blob/master/nginx.conf
+# * some values use altered values to those listed in the above source
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'
+
+# Instructs browsers to allow or deny embedding content (i.e. using iframes)
+# source: https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options
+add_header X-Frame-Options SAMEORIGIN;
+
+# Instructs some browsers (mainly IE) to respect the stated MIME type rather than guessing
+# source: http://security.stackexchange.com/a/11761
+add_header X-Content-Type-Options nosniff;
+
+# Protect against some cross site scripting attacks (used by IE 8+ only)
+# source: https://blogs.msdn.microsoft.com/ie/2008/07/02/ie8-security-part-iv-the-xss-filter/
+add_header X-XSS-Protection "1; mode=block";
+
+# Not strictly security related, but stop some mobile operators modifying responses
+# source: https://github.com/h5bp/server-configs-nginx/blob/master/h5bp/directive-only/no-transform.conf
+add_header "Cache-Control" "no-transform";

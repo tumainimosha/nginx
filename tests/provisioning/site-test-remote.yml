@@ -1,0 +1,70 @@
+---
+# Setup infrastructure for testing role
+
+# This playbook needs to be formalised and documented
+# The domain listed here is temporary until a BAS domain can be used
+
+# A Lets Encrypt certificate managed using the ACME Tiny client is used to provide a valid TLS certificate for testing
+# using tools like SSL Labs. Renews of this certificate are automatic, however where the certificate is renewed you will
+# need to commit the updated certificate to the repository.
+# Source: https://github.com/diafygi/acme-tiny
+
+- name: install nginx and generate https server block with valid certificate for testing
+  hosts: ssl-test.magiclantern.xyz
+  remote_user: controller
+  become: yes
+  roles:
+    - BARC.system-core
+    - ../../../nginx
+  tasks:
+    - name: copy and secure certificate and private key
+      copy:
+        src="{{ item.source }}"
+        dest="{{ item.dest }}"
+        mode=0600
+      with_items:
+        -
+          source: certificates/ssl-test.magiclantern.xyz/ssl-test.magiclantern.xyz-certificate-including-trust-chain.crt
+          dest: "{{ webserver_virtual_hosts_tls_certificate_path }}/{{ webserver_virtual_hosts_tls_certificate_file }}"
+        -
+          source: certificates/ssl-test.magiclantern.xyz/ssl-test.magiclantern.xyz.key
+          dest: "{{ webserver_virtual_hosts_tls_key_path }}/{{ webserver_virtual_hosts_tls_key_file }}"
+
+    - include: tasks/manage-lets-encrypt-certificate.yml
+
+    - name: ensure document root directory exists and has correct owner and permissions
+      file:
+         path="{{ webserver_virtual_hosts_document_root }}"
+        owner="{{ nginx_config_core_user }}"
+        group="{{ nginx_config_core_user }}"
+         mode=0775
+        state=directory
+    - name: ensure document root index file exists and has correct owner and permissions
+      copy:
+          src=data/var/www/html/index.html
+         dest="{{ webserver_virtual_hosts_document_root }}/index.html"
+        owner="{{ nginx_config_core_user }}"
+        group="{{ nginx_config_core_user }}"
+         mode=0664
+
+    - name: generate server block definition files
+      template:
+         src="../../templates/etc/nginx/sites-available/{{ item.src }}.j2"
+        dest="/etc/nginx/sites-available/{{ item.dest }}"
+      with_items:
+        -
+          src: server-block-http-to-https
+          dest: test-http-redirect
+        -
+          src: server-block-https
+          dest: test-https
+    - name: enable server blocks
+      file:
+          src="/etc/nginx/sites-available/{{ item }}"
+         dest="/etc/nginx/sites-enabled/{{ item }}"
+        state=link
+      with_items:
+        - test-http-redirect
+        - test-https
+      notify: Restart Nginx
+

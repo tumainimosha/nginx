@@ -1,0 +1,88 @@
+---
+# Checks a http server block which redirects requests to a https server block can be configured correctly
+
+- name: get details of document root
+  stat: path="{{ webserver_virtual_hosts_document_root }}"
+  changed_when: false
+  register: nginx_test_fact_http_to_https_server_block_document_root_details
+- name: assert document root exists and has correct owner and permissions
+  assert:
+    that:
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.exists is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.exists == true"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.isdir is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.isdir == true"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.mode is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.mode == '0775'"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.pw_name is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.pw_name == '{{ nginx_config_core_user }}'"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.gr_name is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_details.stat.gr_name == '{{ nginx_config_core_user }}'"
+
+- name: get details of document root index file
+  stat: path="{{ webserver_virtual_hosts_document_root }}/index.html"
+  changed_when: false
+  register: nginx_test_fact_http_to_https_server_block_document_root_index_file_details
+- name: assert document root exists and has correct owner and permissions
+  assert:
+    that:
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.exists is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.exists == true"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.isdir is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.isdir == false"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.mode is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.mode == '0664'"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.pw_name is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.pw_name == '{{ nginx_config_core_user }}'"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.gr_name is defined"
+      - "nginx_test_fact_http_to_https_server_block_document_root_index_file_details.stat.gr_name == '{{ nginx_config_core_user }}'"
+
+- name: get contents of http to https server block definition file in sites-available
+  command: cat /etc/nginx/sites-available/test-http-redirect
+  changed_when: false
+  register: nginx_test_fact_http_to_https_http_redirect_server_block_definition_contents
+- name: assert https server block definition is configured correctly
+  assert:
+    that:
+      - "'# Server Block (Virtual Host) server definition file' in nginx_test_fact_http_to_https_http_redirect_server_block_definition_contents.stdout"
+      - "'listen {{ nginx_server_blocks_listening_port_http }} default_server deferred;' in nginx_test_fact_http_to_https_http_redirect_server_block_definition_contents.stdout"
+      - "'server_name {{ nginx_server_blocks_server_name }};' in nginx_test_fact_http_to_https_http_redirect_server_block_definition_contents.stdout"
+
+- name: get contents of https server block definition file in sites-available
+  command: cat /etc/nginx/sites-available/test-https
+  changed_when: false
+  register: nginx_test_fact_http_to_https_https_server_block_definition_contents
+- name: assert https server block definition is configured correctly
+  assert:
+    that:
+      - "'# Server Block (Virtual Host) server definition file' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'listen {{ nginx_server_blocks_listening_port_https }} ssl default_server deferred;' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'server_name {{ nginx_server_blocks_server_name }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'root  {{ nginx_server_blocks_root }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'index {{ nginx_server_blocks_indexes | join(\" \") }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'ssl_certificate      {{ nginx_server_blocks_tls_certificate_path }}/{{ nginx_server_blocks_tls_certificate_file }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'ssl_certificate_key  {{ nginx_server_blocks_tls_key_path }}/{{ nginx_server_blocks_tls_key_file }};' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+      - "'gzip off;' in nginx_test_fact_http_to_https_https_server_block_definition_contents.stdout"
+
+- name: get details of server block definition files in sites-enabled
+  stat: path="/etc/nginx/sites-enabled/{{ item }}"
+  with_items:
+    - test-http-redirect
+    - test-https
+  changed_when: false
+  register: nginx_test_fact_http_to_https_server_block_definition_symlink_details
+- name: assert server block definition files exist in sites-enabled and are symbolic links to files in sites-available
+  assert:
+    that:
+      - "item.0.stat.exists is defined"
+      - "item.0.stat.exists == true"
+      - "item.0.stat.isdir is defined"
+      - "item.0.stat.isdir == false"
+      - "item.0.stat.islnk is defined"
+      - "item.0.stat.islnk == true"
+      - "item.0.stat.lnk_source is defined"
+      - "item.0.stat.lnk_source == '/etc/nginx/sites-available/{{ item.1 }}'"
+  with_together:
+    - "{{ nginx_test_fact_http_to_https_server_block_definition_symlink_details.results }}"
+    - "{{ rencia }}"
+

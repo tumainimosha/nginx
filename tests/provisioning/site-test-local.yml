@@ -1,0 +1,83 @@
+---
+# Setup infrastructure for testing role
+
+# Apply role to test VMs,
+# host-vars are used to control which features of the role are applied to each VM.
+# For each test a set of tasks will be run to check the selected features of roles are correctly applied.
+
+# Note: task files in 'tasks/' are setup tasks needed to simulate using this role, whilst files in '../tasks/' are
+# tasks used for testing the use of this role. 'tasks/' tasks will always be listed before any test tasks.
+
+# Note: Due to the large number of scenarios tested, it is not feasible to test all scenarios at the same time. Instead
+# you will need to uncomment the relevant play for the scenario(s) you wish to test here, and configure the functional
+# test play as instructed (see additional comments below). Further information can be found in '/tests/readme.md'.
+
+# - name: setup the nginx role
+#   hosts: barc-nginx-test-bare
+#   remote_user: controller
+#   become: yes
+#   roles:
+#     - BARC.system-core
+#     - ../../../nginx
+#   tasks:
+#     - include: ../tasks/main.yml
+
+# - name: test creating a http server block using the nginx role
+#   hosts: barc-nginx-test-http
+#   remote_user: controller
+#   become: yes
+#   roles:
+#     - BARC.system-core
+#     - ../../../nginx
+#   tasks:
+#     - include: tasks/http.yml
+#     - include: ../tasks/main.yml
+#     - include: ../tasks/http.yml
+#   handlers:
+#     - include: ../../../nginx/handlers/main.yml
+
+# - name: test creating a https server block using the nginx role
+#   hosts: barc-nginx-test-https
+#   remote_user: controller
+#   become: yes
+#   roles:
+#     - BARC.system-core
+#     - ../../../nginx
+#   tasks:
+#     - include: tasks/https.yml
+#     - include: ../tasks/main.yml
+#     - include: ../tasks/https.yml
+#   handlers:
+#     - include: ../../../nginx/handlers/main.yml
+
+# - name: test creating a http to https server block using the nginx role
+#   hosts: barc-nginx-test-http-to-https
+#   remote_user: controller
+#   become: yes
+#   vars:
+#     rencia:
+#       - test-http-redirect
+#       - test-https
+#   roles:
+#     - ../../../nginx
+#   tasks:
+#     - include: tasks/http-to-https.yml
+#     - include: ../tasks/main.yml
+#     - include: ../tasks/http-to-https.yml
+#   handlers:
+#     - include: ../../../nginx/handlers/main.yml
+
+# When performing functional tests, enable the relevant "test_" variable defined in this play for the scenario under
+# test. I.e. When testing https server-blocks set the 'test_https_server_block' variable to 'true' (unquoted).
+
+- name: perform functionality checks for this role on an external testing machine
+  hosts: barc-nginx-test-server-block-test.v.m
+  remote_user: controller
+  become: yes
+  vars:
+    test_http_server_block: false
+    test_https_server_block: false
+    test_http_to_https_server_block: false
+  tasks:
+    - include: tasks/server-blocks-test.yml
+    - include: ../tasks/functional-tests.yml

@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+
+# Additional configuration file - MIME types
+#
+# Options in this file are based on:
+# * harmonising the Ubuntu and CentOS default configuration files
+#
+# This file is included within the 'http' directive of the main Nginx configuration file '/etc/nginx/nginx.conf'
+
+include /etc/nginx/mime.types;
+default_type application/octet-stream;

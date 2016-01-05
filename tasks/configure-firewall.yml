@@ -1,0 +1,39 @@
+---
+# Create a firewall service for nginx to configure the system firewall
+
+- name: generate firewall service for nginx - CentOS/firewalld
+  template:
+     src="etc/firewalld/services/{{ item }}.xml.j2"
+    dest="/etc/firewalld/services/{{ item }}.xml"
+  with_items:
+    - nginx-http
+    - nginx-https
+    - nginx-http-https
+  when: ansible_distribution == "CentOS"
+  notify: Restart Firewall - CentOS
+
+# Firewalld needs to be reloaded to detect new services
+# A handler in the previous task is used to prevent reloading the firewall where service files have not changed.
+- meta: flush_handlers
+
+- name: configure firewall rules for nginx service - CentOS/firewalld
+  firewalld:
+      service="{{ nginx_firewall_rule }}"
+    permanent=True
+        state=enabled
+  when: ansible_distribution == "CentOS"
+  notify: Restart Firewall - CentOS
+
+- name: generate firewall service for nginx - Ubuntu/UFW
+  template:
+     src=etc/ufw/applications.d/nginx.j2
+    dest=/etc/ufw/applications.d/nginx
+  when: ansible_distribution == "Ubuntu"
+
+- name: configure firewall rules for nginx service - Ubuntu/UFW
+  ufw:
+         name="{{ nginx_firewall_rule }}"
+         rule=allow
+    direction=in
+  when: ansible_distribution == "Ubuntu"
+  notify: Restart Firewall - Ubuntu
