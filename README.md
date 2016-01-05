@@ -654,6 +654,18 @@ This role uses the following tags, for various tasks:
 
 ### Variables
 
+#### *BARC_use_non_system_package_sources*
+
+* **MAY** be specified
+* Specifies whether non-system sources can be used to install packages
+* Note: This variable is scoped to all other BARC roles which install packages from non-system sources
+* Values MUST use one of these options, as determined by Ansible:
+    * `true`
+    * `false`
+* Values **SHOULD NOT** be quoted to prevent Ansible coercing values to a string
+* Where not specified, a value of `true` will be assumed
+* Default: `true`
+
 #### *os_tls_certificates_path*
 
 * **MAY** be specified
