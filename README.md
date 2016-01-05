@@ -1,8 +1,10 @@
 # Nginx (`nginx`)
 
 Master:
+[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/533434/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
 
 Develop:
+[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/535637/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
 
 Installs and configures Nginx web-server
 
@@ -233,12 +235,12 @@ Following the principle of least privilege, the minimum number of firewall rules
 are only using HTTP server blocks, for example, the *nginx-https* scenario **SHOULD** be used over the 
 *nginx-http-https* scenario. See the *Variables* section for the scenario enabled by default.
 
+If you do not want this role to manage the system firewall, or no system firewall is used, you **MUST** skip the 
+**BARC_CONFIGURE_FIREWALL** tag when using this role.
+
 Note: If you are using BAS maintained [operating system images](https://github.com/antarctica/packer-vm-templates) this
 configuration is fully supported and should be seamless. In other cases additional configuration may be needed depending
 on how the system firewall has been configured.
-
-Note: If no system firewall is used, you **MUST** skip the  **BARC_CONFIGURE_FIREWALL** tag when using this role to 
-skip the firewall configuration tasks which will otherwise fail.
 
 ### Nginx configuration files
 
@@ -264,7 +266,7 @@ The following directory structure is used for constructing the Nginx configurati
 
 ```
 ├── conf.d           <-- Contains Module and additional configuration files (directory)
-│   ├── http         <-- Contains Additional configuration files for the 'http' module
+│   ├── http         <-- Contains Additional configuration files for the 'http' module (directory, example)
 │   │   ├── *.conf   <-- Additional configuration file
 │   └── *.conf       <-- Module configuration file
 └── nginx.conf.j2    <-- Main configuration file
@@ -409,6 +411,13 @@ This role includes additional options for configuring Gzip compression.
 The range of mime types to be compressed are set by the *webserver_config_gzip_types* variable. Other basic options are
 set in the included configuration file.
 
+Note: Small files will not be Gzipped as the size saving is negligible and a waste of server resources.
+
+Note: As 'chunked' transfer encoding is used for Gzipped content no 'content-length' header will be set.
+
+Note: Image formats are intentionally excluded from Gzip compression as these formats **SHOULD** be compressed already,
+in many cases applying Gzip to an already compressed file will only increase the file size.
+
 #### Gzip with TLS
 
 Due to known vulnerabilities [1] with combining Gzip with TLS, this role disables Gzip in included secure server block 
@@ -456,6 +465,9 @@ to be implemented outside of this role.
 
 Note: Server block definition files **MUST NOT** use a file extension or they won't be included in the Nginx 
 configuration file, even when enabled.
+
+Note: Server block definitions **MUST NOT** set headers as this will 'cancel out' headers set by other parts of the 
+Nginx configuration, see the *limitations* section for more information.
 
 Note: Don't name definition files with any of these, exact, names as this role will remove them (these are default 
 definitions installed by Nginx, but which when enabled, may cause conflicts):
@@ -538,6 +550,17 @@ to change during this time. Various build tools and frameworks can automate this
 Note: If using server-block templates from this role, this additional configuration file will be included automatically.
 To prevent this, copy the relevant template and adjust the include statement as necessary. Custom server-blocks can
 include this additional configuration file directly if desired.
+
+##### ETags
+
+Nginx will by default set ETags for content it serves, meaning, in most cases, changes to files will automatically
+invalidate caching. This means techniques such as 'cache-busting' should not be needed.
+
+For example, you have a 'main.css' file with a cache time of 1 year. A client requests this file on 01/01/2010 and you 
+then update the file on 04/04/2010. The client conditionally requests the file again on 06/06/2010, passing the ETag of
+the file it has previously cached. As the file has since been changed the ETags do not match and the updated file is 
+returned, instead of a '304 Not Changed' response. This updated file is then cached as normal and used until the ETag 
+changes again, or the cache period is exceeded.
 
 ### Typical playbook
 
@@ -626,6 +649,7 @@ This role uses the following tags, for various tasks:
 * [**BARC_CONFIGURE**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE)
 * [**BARC_CONFIGURE_PACKAGE**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE_PACKAGE)
 * [**BARC_CONFIGURE_FIREWALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE_FIREWALL)
+* [**BARC_INSTALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL)
 * [**BARC_INSTALL_PACKAGES**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL_PACKAGE)
 
 ### Variables
