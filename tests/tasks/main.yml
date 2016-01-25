@@ -13,6 +13,8 @@
 
 - include: configure-firewall.yml
 
+- include: register-role.yml
+
 # Server block tests
 # As these tests only apply to certain scenarios (i.e. those with server blocks), tests for server blocks are loaded
 # when needed from the 'site-test.yml' and 'site-ci.yml' playbooks.
@@ -21,6 +23,16 @@
 # * http.yml          - for testing http server blocks
 # * https.yml         - for testing https server blocks
 # * http-to-https.yml - fr testing http blocks which redirect to https blocks
+
+# Registration checks
+# This check ensures the Ansible local facts set by this role when it has been applied exist and use the correct value
+
+- action: setup
+
+- name: assert role was applied via BARC manifest
+  assert:
+    that:
+      - "ansible_local.barc_nginx.general.role_applied == 'true'"
 
 # Functionality checks
 # These checks need to run after the package or service has been configured to ensure it is working correctly,
