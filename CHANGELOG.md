@@ -12,10 +12,19 @@ Note: Developers - make sure to set the `nginx_barc_role_version` variable when 
 * Local facts to record this role has been applied to a system and its version, plus supporting documentation sections
 * Workaround for bug with using roles from Ansible Galaxy
 
+### Fixed
+
+* Pinning Ansible to pre-2.0 version in CI
+
 ### Changed
 
 * Minor README fixes
 * Removing incorrect role version constraint in testing dependencies
+* Migrating from new Ansible Galaxy namespace, from 'BARC' to 'bas-ansible-roles-collection'
+* Migrating from old Ansible Galaxy 'categories' to new 'tags' meta-data
+* Migrating from old Repository in 'antarctica' to 'bas-ansible-roles-collection'
+* Migrating from old Semaphore 'antarctica' organisation to 'bas-ansible-roles-collection'
+* Simplifying CI setup tasks
 
 ## 2.0.0 - 05/01/2016
 

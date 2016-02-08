@@ -1,10 +1,10 @@
 # Nginx (`nginx`)
 
 Master:
-[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/533434/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+[![Build Status](https://semaphoreci.com/api/v1/bas-ansible-roles-collection/nginx/branches/master/badge.svg)](https://semaphoreci.com/bas-ansible-roles-collection/nginx)
 
 Develop:
-[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/535637/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+[![Build Status](https://semaphoreci.com/api/v1/bas-ansible-roles-collection/nginx/branches/develop/badge.svg)](https://semaphoreci.com/bas-ansible-roles-collection/nginx)
 
 Installs and configures Nginx web-server
 
@@ -589,7 +589,7 @@ changes again, or the cache period is exceeded.
   vars:
     webserver_virtual_hosts_document_root: /app/public
   roles:
-    - BARC.nginx
+    - bas-ansible-roles-collection.nginx
   tasks:
     - name: generate server block definition files
       template:
@@ -615,7 +615,7 @@ changes again, or the cache period is exceeded.
     webserver_virtual_hosts_tls_certificate_file: tls-cert-snakeoil.crt
     webserver_virtual_hosts_tls_key_file: tls-cert-snakeoil.key
   roles:
-    - BARC.nginx
+    - bas-ansible-roles-collection.nginx
   tasks:
     - name: copy and secure snake-oil certificate file and key for testing
       copy:
@@ -1047,7 +1047,7 @@ and *nginx_server_blocks_listening_port_https* are the same
 ### Issue tracking
 
 Issues, bugs, improvements, questions, suggestions and other tasks related to this package are managed through the 
-[BAS Ansible Role Collection](https://jira.ceh.ac.uk/projects/BARC) (BARC) project on Jira.
+[BAS Ansible Roles Collection](https://jira.ceh.ac.uk/projects/BARC) (BARC) project on Jira.
 
 This service is currently only available to BAS or NERC staff, although external collaborators can be added on request.
 See our contributing policy for more information.
@@ -1061,7 +1061,7 @@ All changes should be committed, via pull request, to the canonical repository, 
 A mirror of this repository is maintained on GitHub. Changes are automatically pushed from the canonical repository to
 this mirror, in a one-way process.
 
-`git@github.com:antarctica/ansible-nginx.git`
+`git@github.com:bas-ansible-roles-collection/nginx.git`
 
 Note: The canonical repository is only accessible within the NERC firewall. External collaborators, please make pull 
 requests against the mirrored GitHub repository and these will be merged as appropriate.
