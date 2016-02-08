@@ -189,8 +189,8 @@ See [BARC-92](https://jira.ceh.ac.uk/browse/BARC-92) for further details.
 By default, BARC roles will record that they have been applied to a system. This is recorded using a set of 
 [Ansible local facts](http://docs.ansible.com/ansible/playbooks_variables.html#local-facts-facts-d), specifically:
 
-* `ansible_local.barc-nginx.general.role_applied` - to indicate that this role has been applied to a system
-* `ansible_local.barc-nginx.general.role_version` - to indicate the version of this this role that has been applied
+* `ansible_local.barc_nginx.general.role_applied` - to indicate that this role has been applied to a system
+* `ansible_local.barc_nginx.general.role_version` - to indicate the version of this this role that has been applied
 
 Note: You **SHOULD** use this feature to determine whether this role has been applied to a system.
 
@@ -669,14 +669,14 @@ This role uses the following tags, for various tasks:
 
 ### Variables
 
-#### *BARC_role_name*
+#### *nginx_barc_role_name*
 
 * **MUST NOT** be specified
 * Specifies the name of this role within the BAS Ansible Roles Collection (BARC) used for setting local facts
 * See the *BARC roles manifest* section for more information
 * Example: nginx
 
-#### *BARC_role_version*
+#### *nginx_barc_role_version*
 
 * **MUST NOT** be specified
 * Specifies the name of this role within the BAS Ansible Roles Collection (BARC) used for setting local facts
