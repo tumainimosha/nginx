@@ -9,4 +9,29 @@
 
 # Unlike projects, role dependencies are not pinned to ensure roles always work with the latest role versions.
 
-- src: BARC.system-core
+#- src: bas-ansible-roles-collection.system-core
+
+# Note: The 'bas-ansible-roles-collection.system-core' role is currently unavailable through Ansible Galaxy.
+# Until this bug is resolved, this role is referenced directly from GitHub as a workaround.
+#
+# Source: https://jira.ceh.ac.uk/browse/BARC-105
+
+- src: https://github.com/bas-ansible-roles-collection/system-core
+  name: bas-ansible-roles-collection.system-core
+
+# Role dependencies are also manually specified here until Ansible Galaxy can be used to resolve these automatically.
+
+- src: https://github.com/bas-ansible-roles-collection/system-security
+  name: bas-ansible-roles-collection.system-security
+
+- src: https://github.com/bas-ansible-roles-collection/system-ssh
+  name: bas-ansible-roles-collection.system-ssh
+
+- src: https://github.com/bas-ansible-roles-collection/system-firewall
+  name: bas-ansible-roles-collection.system-firewall
+
+- src: https://github.com/bas-ansible-roles-collection/system-hostname
+  name: bas-ansible-roles-collection.system-hostname
+
+- src: https://github.com/bas-ansible-roles-collection/system-users
+  name: bas-ansible-roles-collection.system-users

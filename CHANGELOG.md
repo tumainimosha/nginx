@@ -10,6 +10,7 @@ Note: Developers - make sure to set the `nginx_barc_role_version` variable when 
 ### Added
 
 * Local facts to record this role has been applied to a system and its version, plus supporting documentation sections
+* Workaround for bug with using roles from Ansible Galaxy
 
 ### Changed
 
