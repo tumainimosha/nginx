@@ -1,10 +1,10 @@
 # Nginx (`nginx`)
 
 Master:
-[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/533434/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+[![Build Status](https://semaphoreci.com/api/v1/bas-ansible-roles-collection/nginx/branches/master/badge.svg)](https://semaphoreci.com/bas-ansible-roles-collection/nginx)
 
 Develop:
-[![Build Status](https://semaphoreci.com/api/v1/projects/a41082f0-c1c8-48d8-a537-bcc161098b4c/535637/badge.svg)](https://semaphoreci.com/antarctica/ansible-nginx)
+[![Build Status](https://semaphoreci.com/api/v1/bas-ansible-roles-collection/nginx/branches/develop/badge.svg)](https://semaphoreci.com/bas-ansible-roles-collection/nginx)
 
 Installs and configures Nginx web-server
 
@@ -184,6 +184,20 @@ See [BARC-92](https://jira.ceh.ac.uk/browse/BARC-92) for further details.
 
 ## Usage
 
+### BARC manifest
+
+By default, BARC roles will record that they have been applied to a system. This is recorded using a set of 
+[Ansible local facts](http://docs.ansible.com/ansible/playbooks_variables.html#local-facts-facts-d), specifically:
+
+* `ansible_local.barc_nginx.general.role_applied` - to indicate that this role has been applied to a system
+* `ansible_local.barc_nginx.general.role_version` - to indicate the version of this this role that has been applied
+
+Note: You **SHOULD** use this feature to determine whether this role has been applied to a system.
+
+If you do not want these facts to be set by this role, you **MUST** skip the **BARC_SET_MANIFEST** tag. No support is 
+offered in this case, as other roles or use-cases may rely on this feature. Therefore you **SHOULD** not disable this
+feature.
+
 ### Non-system packages
 
 It is a convention of BARC roles to use the latest version of packages. Where a suitable non-system package source is 
@@ -194,8 +208,8 @@ respected individual. If this is for some reason unsuitable, it is possible to o
 Note: As the package policy varies between system and non-system package sources, and between operating systems, the 
 version of installed packages is variable.
 
-Note: In this role, there is no Nginx package available on CentOS without using non-system packages, see the 
-*Limitations* section for more information.
+Note: There is no Nginx package available on CentOS 7 without using non-system packages, see the *Limitations* section 
+for more information.
 
 ### Firewall configuration
 
@@ -575,7 +589,7 @@ changes again, or the cache period is exceeded.
   vars:
     webserver_virtual_hosts_document_root: /app/public
   roles:
-    - BARC.nginx
+    - bas-ansible-roles-collection.nginx
   tasks:
     - name: generate server block definition files
       template:
@@ -601,7 +615,7 @@ changes again, or the cache period is exceeded.
     webserver_virtual_hosts_tls_certificate_file: tls-cert-snakeoil.crt
     webserver_virtual_hosts_tls_key_file: tls-cert-snakeoil.key
   roles:
-    - BARC.nginx
+    - bas-ansible-roles-collection.nginx
   tasks:
     - name: copy and secure snake-oil certificate file and key for testing
       copy:
@@ -651,8 +665,23 @@ This role uses the following tags, for various tasks:
 * [**BARC_CONFIGURE_FIREWALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_CONFIGURE_FIREWALL)
 * [**BARC_INSTALL**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL)
 * [**BARC_INSTALL_PACKAGES**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_INSTALL_PACKAGE)
+* [**BARC_SET_MANIFEST**](https://antarctica.hackpad.com/BARC-Standardised-Tags-AviQxxiBa3y#:h=BARC_SET_MANIFEST)
 
 ### Variables
+
+#### *nginx_barc_role_name*
+
+* **MUST NOT** be specified
+* Specifies the name of this role within the BAS Ansible Roles Collection (BARC) used for setting local facts
+* See the *BARC roles manifest* section for more information
+* Example: nginx
+
+#### *nginx_barc_role_version*
+
+* **MUST NOT** be specified
+* Specifies the name of this role within the BAS Ansible Roles Collection (BARC) used for setting local facts
+* See the *BARC roles manifest* section for more information
+* Example: 2.0.0
 
 #### *BARC_use_non_system_package_sources*
 
@@ -1018,7 +1047,7 @@ and *nginx_server_blocks_listening_port_https* are the same
 ### Issue tracking
 
 Issues, bugs, improvements, questions, suggestions and other tasks related to this package are managed through the 
-[BAS Ansible Role Collection](https://jira.ceh.ac.uk/projects/BARC) (BARC) project on Jira.
+[BAS Ansible Roles Collection](https://jira.ceh.ac.uk/projects/BARC) (BARC) project on Jira.
 
 This service is currently only available to BAS or NERC staff, although external collaborators can be added on request.
 See our contributing policy for more information.
@@ -1032,7 +1061,7 @@ All changes should be committed, via pull request, to the canonical repository, 
 A mirror of this repository is maintained on GitHub. Changes are automatically pushed from the canonical repository to
 this mirror, in a one-way process.
 
-`git@github.com:antarctica/ansible-nginx.git`
+`git@github.com:bas-ansible-roles-collection/nginx.git`
 
 Note: The canonical repository is only accessible within the NERC firewall. External collaborators, please make pull 
 requests against the mirrored GitHub repository and these will be merged as appropriate.
@@ -1050,6 +1079,11 @@ workflow is used to manage the development of this project:
 required and merge into master with a tagged, semantic version (e.g. v1.2.3)
 * After each release, the master branch should be merged with develop to restart the process
 * High impact bugs can be addressed in hotfix branches, created from and merged into master (then develop) directly
+
+### Release procedure
+
+See [here](https://antarctica.hackpad.com/BARC-Overview-and-Policies-SzcHzHvitkt#:h=Release-procedures) for general 
+release procedures for BARC roles.
 
 ## License
 

@@ -16,6 +16,6 @@ galaxy_info:
     versions:
       - trusty
 
-  categories:
+  galaxy_tags:
   - system
   - web
