@@ -14,6 +14,7 @@ Note: Developers - make sure to set the `BARC_role_version` when releasing new v
 ### Changed
 
 * Minor README fixes
+* Removing incorrect role version constraint in testing dependencies
 
 ## 2.0.0 - 05/01/2016
 

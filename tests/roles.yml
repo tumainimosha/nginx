@@ -10,4 +10,3 @@
 # Unlike projects, role dependencies are not pinned to ensure roles always work with the latest role versions.
 
 - src: BARC.system-core
-  version: v0.1.0
