@@ -7,6 +7,10 @@ Note: Developers - make sure to set the `nginx_barc_role_version` variable when 
 
 ## [Unreleased][unreleased]
 
+### Fixed
+
+* Added missing empty 'dependencies' section from meta/main
+
 ## 2.1.0 - 08/01/2016
 
 ### Added
