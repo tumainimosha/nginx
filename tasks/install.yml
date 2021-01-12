@@ -3,64 +3,72 @@
 
 # not sure if this is the correct convention for these tasks
 
-# This task is added in readiness for Ansible 2 - it is not currently used.
-# - name: add nginx repository - CentOS
-#   yumrepo:
-#     name=nginx
-#     description=Nginx repo
-#     baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
-#     state=present
-#   when: ansible_distribution == "CentOS"
+- name: add nginx stable repository - CentOS/RHEL
+  yum_repository:
+    name: nginx-stable
+    description: nginx stable repo
+    file: nginx
+    baseurl:  http://nginx.org/packages/centos/{{ ansible_distribution_major_version }}/$basearch/
+    gpgkey: https://nginx.org/keys/nginx_signing.key
+    gpgcheck: yes
+    enabled: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
+
+- name: add nginx mainline repository - CentOS/RHEL
+  yum_repository:
+    name: nginx-mainline
+    description: nginx mainline repo
+    file: nginx
+    baseurl: http://nginx.org/packages/mainline/centos/{{ ansible_distribution_major_version }}/$basearch/
+    gpgkey: https://nginx.org/keys/nginx_signing.key
+    gpgcheck: yes
+    enabled: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
 
 # Nginx isn't available on CentOS using system packages only so no conditional is added for this task
-- name: add nginx repository - CentOS
-  copy:
-     src=etc/yum.repos.d/nginx.repo
-    dest=/etc/yum.repos.d/nginx.repo
-  when: ansible_distribution == "CentOS"
+# - name: add nginx repository - CentOS
+#   copy:
+#      src=etc/yum.repos.d/nginx.repo
+#     dest=/etc/yum.repos.d/nginx.repo
+#   when: ansible_distribution == "CentOS"
 
 - name: install prerequisites for installing PPAs - Ubuntu
   apt:
-                 pkg={{ item }}
-        update_cache=yes
-    cache_valid_time=3600
-               state=present
-  with_items:
-    - software-properties-common
+    name: software-properties-common
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
   when: ansible_distribution == "Ubuntu" and
     (BARC_use_non_system_package_sources == true or BARC_use_non_system_package_sources == 'True')
 
-- name: add nginx PPA  - Ubuntu
-  apt_repository:
-     repo='ppa:nginx/stable'
-    state=present
-  when: ansible_distribution == "Ubuntu" and
-    (BARC_use_non_system_package_sources == true or BARC_use_non_system_package_sources == 'True')
+# For latest ubuntu use system default PPA
+# - name: add nginx PPA  - Ubuntu
+#   apt_repository:
+#      repo='ppa:nginx/stable'
+#     state=present
+#   when: ansible_distribution == "Ubuntu" and
+#     (BARC_use_non_system_package_sources == true or BARC_use_non_system_package_sources == 'True')
 
-- name: install nginx - CentOS
+- name: install nginx - CentOS/Redhat
   yum:
-             pkg={{ item }}
-      enablerepo=nginx
-    update_cache=yes
-           state=present
-  with_items:
-  - nginx
-  when: ansible_distribution == "CentOS"
+    name: nginx
+    state: present
+    enablerepo: nginx-mainline
+    update_cache: yes
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
 
 # Adding the custom repository causes a package cache refresh so the valid cache option can be used safely
 - name: install nginx - Ubuntu
   apt:
-                 pkg={{ item }}
-    cache_valid_time=3600
-        update_cache=yes
-               state=present
-  with_items:
-  - nginx
+    name: nginx
+    cache_valid_time: 3600
+    update_cache: yes
+    state: present
   when: ansible_distribution == "Ubuntu"
 
 - name: ensure nginx is enabled to start at boot - CentOS
   service:
-       name=nginx
+    name=nginx
     enabled=yes
-      state=started
-  when: ansible_distribution == "CentOS"
+    state=started
+  when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
